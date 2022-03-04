@@ -1,0 +1,10 @@
+version: "3"
+services:
+  npm:
+    image: node
+    working_dir: /usr/src/app
+    volumes:
+      - ./next:/usr/src/app
+    command: npm run dev
+    ports:
+      - "3000:3000"

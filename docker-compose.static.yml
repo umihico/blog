@@ -1,0 +1,14 @@
+version: "3"
+services:
+  npm:
+    command: npm run export
+  nginx:
+    image: nginx
+    working_dir: /usr/src/app
+    volumes:
+      - ./next/out:/usr/share/nginx/html
+    ports:
+      - "80:80"
+    depends_on:
+      npm:
+        condition: service_completed_successfully
