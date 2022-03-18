@@ -1,6 +1,6 @@
 module "codebuild" {
   source = "../../modules/codebuild"
-  vars = {
+  vars = merge(jsondecode(var.vars), {
     name = "cicd"
-  }
+  })
 }
