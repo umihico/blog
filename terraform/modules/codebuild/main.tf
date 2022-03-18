@@ -15,9 +15,10 @@ resource "aws_codebuild_project" "this" {
   }
 
   source {
-    type            = "GITHUB"
-    location        = var.vars.source_location
-    git_clone_depth = 1
+    type                = "GITHUB"
+    location            = var.vars.source_location
+    git_clone_depth     = 1
+    report_build_status = true
   }
   artifacts {
     type = "NO_ARTIFACTS"
