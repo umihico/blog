@@ -2,11 +2,18 @@ version: 0.2
 
 env:
   variables:
-    TERRAGRUNT_WORKING_DIR: "terraform/environments/cicd"
     AWS_DEFAULT_REGION: "ap-northeast-1"
     SOURCE_LOCATION: "https://github.com/umihico/blog.git"
 
 phases:
   build:
     commands:
-      - terragrunt apply -auto-approve
+      - terragrunt apply -auto-approve --terragrunt-working-dir terraform/environments/cicd
+      - |
+        if [ "${CODEBUILD_WEBHOOK_HEAD_REF}" == "development" ]; then
+          terragrunt apply -auto-approve --terragrunt-working-dir terraform/environments/dev
+        fi
+      - |
+        if [ "${CODEBUILD_WEBHOOK_HEAD_REF}" == "main" ]; then
+          terragrunt apply -auto-approve --terragrunt-working-dir terraform/environments/prod
+        fi

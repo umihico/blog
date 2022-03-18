@@ -26,3 +26,9 @@ provider "aws" {
 }
 EOF
 }
+
+inputs = {
+  vars = {
+    source_location = get_env("SOURCE_LOCATION")
+  }
+}
