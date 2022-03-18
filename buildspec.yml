@@ -1,0 +1,12 @@
+version: 0.2
+
+env:
+  variables:
+    TERRAGRUNT_WORKING_DIR: "terraform/environments/cicd"
+    AWS_DEFAULT_REGION: "ap-northeast-1"
+    SOURCE_LOCATION: "https://github.com/umihico/blog.git"
+
+phases:
+  build:
+    commands:
+      - terragrunt apply -auto-approve
