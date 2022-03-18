@@ -10,10 +10,10 @@ phases:
     commands:
       - terragrunt apply -auto-approve --terragrunt-working-dir terraform/environments/cicd
       - |
-        if [ "${CODEBUILD_WEBHOOK_HEAD_REF}" == "development" ]; then
+        if [ "${CODEBUILD_WEBHOOK_TRIGGER#branch/}" == "development" ]; then
           terragrunt apply -auto-approve --terragrunt-working-dir terraform/environments/dev
         fi
       - |
-        if [ "${CODEBUILD_WEBHOOK_HEAD_REF}" == "main" ]; then
+        if [ "${CODEBUILD_WEBHOOK_TRIGGER#branch/}" == "main" ]; then
           terragrunt apply -auto-approve --terragrunt-working-dir terraform/environments/prod
         fi
