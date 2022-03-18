@@ -7,6 +7,7 @@ resource "aws_codebuild_project" "this" {
   name         = var.vars.name
   service_role = module.iam.all.codebuild.arn
 
+  badge_enabled = true
   environment {
     compute_type                = "BUILD_GENERAL1_SMALL"
     image                       = "aws/codebuild/amazonlinux2-x86_64-standard:3.0"
