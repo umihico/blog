@@ -4,13 +4,14 @@ resource "aws_codebuild_project" "this" {
   badge_enabled = true
   environment {
     compute_type                = "BUILD_GENERAL1_SMALL"
-    image                       = "alpine/terragrunt:latest"
+    image                       = "${var.vars.ecr.codebuild_ecr_repository.repository_url}:latest"
     type                        = "LINUX_CONTAINER"
-    image_pull_credentials_type = "CODEBUILD"
+    image_pull_credentials_type = "SERVICE_ROLE"
 
     dynamic "environment_variable" {
       for_each = {
         "TERRAGRUNT_WORKING_DIR" = "terraform/environments/${var.vars.prefix}"
+        "SLS_CACHE_BUCKET"       = var.vars.s3.private_buckets["sls-cache"].bucket
       }
       content {
         name  = environment_variable.key
