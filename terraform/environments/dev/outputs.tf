@@ -1,5 +1,5 @@
 output "all" {
   value = {
-    codebuild = module.codebuild
+    base = module.base.all
   }
 }

@@ -1,6 +1,5 @@
 output "all" {
   value = {
-    iam               = module.iam
     codebuild_project = aws_codebuild_project.this
     codebuild_webhook = {
       id          = aws_codebuild_webhook.this.id
