@@ -8,9 +8,14 @@ resource "aws_codebuild_project" "this" {
     type                        = "LINUX_CONTAINER"
     image_pull_credentials_type = "CODEBUILD"
 
-    environment_variable {
-      name  = "TERRAGRUNT_WORKING_DIR"
-      value = "terraform/environments/${var.vars.prefix}"
+    dynamic "environment_variable" {
+      for_each = {
+        "TERRAGRUNT_WORKING_DIR" = "terraform/environments/${var.vars.prefix}"
+      }
+      content {
+        name  = environment_variable.key
+        value = environment_variable.value
+      }
     }
   }
 
