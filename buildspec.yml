@@ -9,3 +9,8 @@ phases:
   build:
     commands:
       - terragrunt apply -auto-approve
+      - |
+        cd next
+        aws s3 sync s3://${SLS_CACHE_BUCKET}/.serverless .serverless --delete # create empty directory without errors when the directory does not exist
+        components-v1
+        aws s3 sync .serverless s3://${SLS_CACHE_BUCKET}/.serverless --delete
