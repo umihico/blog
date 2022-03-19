@@ -1,8 +1,10 @@
 locals {
-  prefix = { prefix = "prod" }
+  vars = merge(jsondecode(var.vars), {
+    prefix = "prod"
+    branch = "main"
+  })
 }
-
 module "base" {
   source = "../base"
-  vars   = local.prefix
+  vars   = local.vars
 }
