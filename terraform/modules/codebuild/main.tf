@@ -11,7 +11,7 @@ resource "aws_codebuild_project" "this" {
     dynamic "environment_variable" {
       for_each = {
         "TERRAGRUNT_WORKING_DIR" = "terraform/environments/${var.vars.prefix}"
-        "SLS_CACHE_BUCKET"       = var.vars.s3.private_buckets["sls-cache"].bucket
+        "SLS_ASSET_BUCKET"       = var.vars.s3.private_buckets["sls-assets"].bucket
       }
       content {
         name  = environment_variable.key

@@ -1,5 +1,5 @@
 locals {
-  private_buckets = toset(["sls-cache"])
+  private_buckets = toset(["sls-assets"])
 }
 
 resource "aws_s3_bucket" "private_buckets" {

@@ -6,5 +6,3 @@ RUN apk update && \
   curl -OL https://github.com/gruntwork-io/terragrunt/releases/download/v0.36.0/terragrunt_linux_amd64 && \
   mv terragrunt_linux_amd64 /usr/local/bin/terragrunt && \
   chmod +x /usr/local/bin/terragrunt
-
-RUN npm install --global @serverless/cli
