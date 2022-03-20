@@ -8,12 +8,14 @@ terraform {
 }
 
 locals {
-  iam       = { iam = module.iam.all }
-  codebuild = { codebuild = module.codebuild.all }
-  s3        = { s3 = module.s3.all }
-  ecr       = { ecr = module.ecr.all }
-  route53   = { route53 = module.route53.all }
-  acm       = { acm = module.acm.all }
+  iam        = { iam = module.iam.all }
+  codebuild  = { codebuild = module.codebuild.all }
+  s3         = { s3 = module.s3.all }
+  ecr        = { ecr = module.ecr.all }
+  route53    = { route53 = module.route53.all }
+  acm        = { acm = module.acm.all }
+  cloudfront = { cloudfront = module.cloudfront.all }
+  acm_usa    = { acm_usa = module.acm_usa.all }
 }
 
 module "route53" {
@@ -34,7 +36,7 @@ module "acm" {
   }
 }
 
-module "acm-us-east-1" {
+module "acm_usa" {
   source = "../../modules/acm"
   vars   = var.vars
   providers = {
