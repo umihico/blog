@@ -14,5 +14,5 @@ terraform import aws_iam_role.blog role-assumed-by-blog
 ## apply
 
 ```bash
-terraform apply -var="prod_domain=umihi.co" -var="dev_domain=dev-blog.umihi.co" -var="blog_account_id=$BLOG_ACCOUNT_ID"
+terraform apply -chdir=terraform/environments -var="prod_domain=umihi.co" -var="dev_domain=dev-blog.umihi.co" -var="blog_account_id=$BLOG_ACCOUNT_ID"
 ```
