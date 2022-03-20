@@ -1,5 +1,6 @@
 locals {
   backend_path = "terraform-states-${get_aws_account_id()}"
+  organization = jsondecode(run_cmd("aws", "organizations", "describe-organization", "--query", "Organization"))
 }
 
 remote_state {
@@ -18,17 +19,33 @@ remote_state {
 }
 
 generate "provider" {
-  path      = "provider_override.tf"
+  path      = "provider.tf"
   if_exists = "overwrite_terragrunt"
   contents  = <<EOF
 provider "aws" {
   region  = "${get_env("AWS_DEFAULT_REGION")}"
+}
+
+provider "aws" {
+  region  = "us-east-1"
+  alias   = "us-east-1"
+}
+
+provider "aws" {
+  region  = "${get_env("AWS_DEFAULT_REGION")}"
+  alias   = "parent"
+  assume_role {
+    role_arn = "arn:aws:iam::${local.organization["MasterAccountId"]}:role/role-assumed-by-blog"
+  }
 }
 EOF
 }
 
 inputs = {
   vars = {
-    source_location = get_env("SOURCE_LOCATION")
+    prod_domain       = get_env("PROD_DOMAIN")
+    dev_domain        = get_env("DEV_DOMAIN")
+    master_account_id = local.organization["MasterAccountId"]
+    source_location   = get_env("SOURCE_LOCATION")
   }
 }
