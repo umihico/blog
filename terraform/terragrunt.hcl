@@ -25,6 +25,14 @@ generate "provider" {
 provider "aws" {
   region  = "${get_env("AWS_DEFAULT_REGION")}"
 }
+
+provider "aws" {
+  region  = "${get_env("AWS_DEFAULT_REGION")}"
+  alias   = "parent"
+  assume_role {
+    role_arn = "arn:aws:iam::${local.organization["MasterAccountId"]}:role/role-assumed-by-blog"
+  }
+}
 EOF
 }
 
