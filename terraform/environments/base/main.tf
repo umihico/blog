@@ -64,3 +64,12 @@ module "s3" {
   source = "../../modules/s3"
   vars   = var.vars
 }
+
+module "cloudfront" {
+  source = "../../modules/cloudfront"
+  vars   = merge(var.vars, local.s3, local.acm_usa, local.route53)
+  providers = {
+    aws        = aws
+    aws.parent = aws.parent,
+  }
+}
