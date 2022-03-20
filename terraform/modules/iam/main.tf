@@ -27,7 +27,6 @@ resource "aws_iam_role" "codebuild" {
       {
         "Effect" : "Allow",
         "Principal" : {
-          "AWS" : "arn:aws:iam::${data.aws_caller_identity.self.account_id}:role/OrganizationAccountAccessRole",
           "Service" : "codebuild.amazonaws.com"
         },
         "Action" : "sts:AssumeRole"

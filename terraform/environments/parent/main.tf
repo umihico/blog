@@ -58,6 +58,7 @@ resource "aws_iam_role" "blog" {
           "AWS" = [
             "arn:aws:iam::${var.blog_account_id}:role/dev-codebuild-service-role",
             "arn:aws:iam::${var.blog_account_id}:role/prod-codebuild-service-role",
+            "arn:aws:iam::${var.blog_account_id}:role/OrganizationAccountAccessRole",
           ]
         },
       },
