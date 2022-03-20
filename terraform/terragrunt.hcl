@@ -38,6 +38,8 @@ EOF
 
 inputs = {
   vars = {
+    prod_domain       = get_env("PROD_DOMAIN")
+    dev_domain        = get_env("DEV_DOMAIN")
     master_account_id = local.organization["MasterAccountId"]
     source_location   = get_env("SOURCE_LOCATION")
   }
