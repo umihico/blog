@@ -1,7 +1,13 @@
 data "aws_iam_policy_document" "this" {
   statement {
-    actions   = ["s3:GetObject"]
-    resources = ["${var.vars.s3.private_buckets["sls-assets"].arn}/*"]
+    actions = [
+      "s3:GetObject",
+      "s3:ListBucket",
+    ]
+    resources = [
+      "${var.vars.s3.private_buckets["sls-assets"].arn}/*",
+      "${var.vars.s3.private_buckets["sls-assets"].arn}",
+    ]
 
     principals {
       type        = "AWS"
