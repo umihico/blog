@@ -2,7 +2,7 @@ terraform {
   required_providers {
     aws = {
       source                = "hashicorp/aws"
-      configuration_aliases = [aws.parent]
+      configuration_aliases = [aws.parent, aws.us-east-1]
     }
   }
 }
@@ -19,7 +19,8 @@ module "base" {
   source = "../base"
   vars   = local.vars
   providers = {
-    aws        = aws,
-    aws.parent = aws.parent,
+    aws           = aws,
+    aws.parent    = aws.parent,
+    aws.us-east-1 = aws.us-east-1,
   }
 }

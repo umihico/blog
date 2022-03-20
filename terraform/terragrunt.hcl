@@ -27,6 +27,11 @@ provider "aws" {
 }
 
 provider "aws" {
+  region  = "us-east-1"
+  alias   = "us-east-1"
+}
+
+provider "aws" {
   region  = "${get_env("AWS_DEFAULT_REGION")}"
   alias   = "parent"
   assume_role {
