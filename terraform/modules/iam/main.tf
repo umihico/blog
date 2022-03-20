@@ -14,6 +14,10 @@ resource "aws_iam_role" "codebuild" {
           "iam:PassRole"
         ],
         "Resource" : "arn:aws:iam::${var.vars.master_account_id}:role/role-assumed-by-blog"
+        }, {
+        "Effect" : "Allow",
+        "Action" : ["iam:Get*", "iam:List*"],
+        "Resource" : "arn:aws:iam::${data.aws_caller_identity.self.account_id}:role/${var.vars.prefix}-codebuild-service-role" # to refresh terraform state
       }]
     })
   }
