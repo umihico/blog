@@ -1,5 +1,6 @@
 locals {
   backend_path = "terraform-states-${get_aws_account_id()}"
+  organization = jsondecode(run_cmd("aws", "organizations", "describe-organization", "--query", "Organization"))
 }
 
 remote_state {
@@ -29,6 +30,7 @@ EOF
 
 inputs = {
   vars = {
-    source_location = get_env("SOURCE_LOCATION")
+    master_account_id = local.organization["MasterAccountId"]
+    source_location   = get_env("SOURCE_LOCATION")
   }
 }
