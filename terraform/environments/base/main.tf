@@ -1,9 +1,39 @@
+terraform {
+  required_providers {
+    aws = {
+      source                = "hashicorp/aws"
+      configuration_aliases = [aws.parent]
+    }
+  }
+}
+
 locals {
   iam       = { iam = module.iam.all }
   codebuild = { codebuild = module.codebuild.all }
   s3        = { s3 = module.s3.all }
   ecr       = { ecr = module.ecr.all }
+  route53   = { route53 = module.route53.all }
+  acm       = { acm = module.acm.all }
 }
+
+module "route53" {
+  source = "../../modules/route53"
+  vars   = var.vars
+  providers = {
+    aws        = aws,
+    aws.parent = aws.parent,
+  }
+}
+
+module "acm" {
+  source = "../../modules/acm"
+  vars   = var.vars
+  providers = {
+    aws        = aws,
+    aws.parent = aws.parent,
+  }
+}
+
 module "iam" {
   source = "../../modules/iam"
   vars   = var.vars

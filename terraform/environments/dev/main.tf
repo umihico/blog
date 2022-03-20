@@ -8,14 +8,20 @@ terraform {
 }
 
 locals {
-  vars = merge(jsondecode(var.vars), {
+  parent_vars = jsondecode(var.vars)
+  vars = merge(local.parent_vars, {
     prefix = "dev"
     branch = "development"
+    domain = local.parent_vars.dev_domain
   })
 }
 module "base" {
   source = "../base"
   vars   = local.vars
+  providers = {
+    aws        = aws,
+    aws.parent = aws.parent,
+  }
 }
 
 module "ns" {
