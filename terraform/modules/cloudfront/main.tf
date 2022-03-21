@@ -57,6 +57,11 @@ resource "aws_cloudfront_distribution" "this" {
         forward = "none"
       }
     }
+
+    function_association {
+      event_type   = "viewer-request"
+      function_arn = aws_cloudfront_function.append_index_html.arn
+    }
   }
 
   restrictions {
@@ -81,4 +86,28 @@ module "route53" {
   providers = {
     aws = aws.parent,
   }
+}
+
+resource "aws_cloudfront_function" "append_index_html" {
+  name    = "${var.vars.prefix}-append-index-html"
+  runtime = "cloudfront-js-1.0"
+  comment = "https://dev.classmethod.jp/articles/cloudfront-url-cff/"
+  publish = true
+  code    = <<CODE
+function handler(event) {
+    var request = event.request;
+    var uri = request.uri;
+
+    // Check whether the URI is missing a file name.
+    if (uri.endsWith('/')) {
+        request.uri += 'index.html';
+    }
+    // Check whether the URI is missing a file extension.
+    else if (!uri.includes('.')) {
+        request.uri += '/index.html';
+    }
+
+    return request;
+}
+CODE
 }
