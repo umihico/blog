@@ -8,3 +8,5 @@ services:
     command: npm run dev
     ports:
       - "3000:3000"
+    environment:
+      NEXT_PUBLIC_GITHUB_URL: ${NEXT_PUBLIC_GITHUB_URL:-https://example.com/}
