@@ -17,3 +17,8 @@ phases:
         npm install
         npm run export
         aws s3 sync out s3://${SLS_ASSET_BUCKET} --delete
+
+cache:
+  paths:
+    - "next/node_modules/**/*"
+    - "next/.next/cache/**/*"
