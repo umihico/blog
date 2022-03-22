@@ -41,7 +41,7 @@ resource "aws_cloudfront_distribution" "this" {
   custom_error_response {
     error_code         = "404"
     response_code      = "404"
-    response_page_path = "/404.html"
+    response_page_path = "/404/index.html"
   }
 
   default_cache_behavior {
@@ -49,13 +49,18 @@ resource "aws_cloudfront_distribution" "this" {
     cached_methods         = ["GET", "HEAD"]
     target_origin_id       = local.origin_id
     compress               = true
-    viewer_protocol_policy = "allow-all"
+    viewer_protocol_policy = "redirect-to-https"
 
     forwarded_values {
       query_string = false
       cookies {
         forward = "none"
       }
+    }
+
+    function_association {
+      event_type   = "viewer-request"
+      function_arn = aws_cloudfront_function.append_index_html.arn
     }
   }
 
@@ -81,4 +86,28 @@ module "route53" {
   providers = {
     aws = aws.parent,
   }
+}
+
+resource "aws_cloudfront_function" "append_index_html" {
+  name    = "${var.vars.prefix}-append-index-html"
+  runtime = "cloudfront-js-1.0"
+  comment = "https://dev.classmethod.jp/articles/cloudfront-url-cff/"
+  publish = true
+  code    = <<CODE
+function handler(event) {
+    var request = event.request;
+    var uri = request.uri;
+
+    // Check whether the URI is missing a file name.
+    if (uri.endsWith('/')) {
+        request.uri += 'index.html';
+    }
+    // Check whether the URI is missing a file extension.
+    else if (!uri.includes('.')) {
+        request.uri += '/index.html';
+    }
+
+    return request;
+}
+CODE
 }

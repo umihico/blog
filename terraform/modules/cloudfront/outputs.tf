@@ -4,5 +4,6 @@ output "all" {
     cloudfront_distribution           = aws_cloudfront_distribution.this
     s3                                = module.s3.all
     route53                           = module.route53.all
+    cloudfront_function               = aws_cloudfront_function.append_index_html
   }
 }

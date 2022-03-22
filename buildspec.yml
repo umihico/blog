@@ -6,6 +6,7 @@ env:
     SOURCE_LOCATION: "https://github.com/umihico/blog.git"
     PROD_DOMAIN: "umihi.co"
     DEV_DOMAIN: "dev-blog.umihi.co"
+    NEXT_PUBLIC_GITHUB_URL: "https://github.com/umihico/blog"
 
 phases:
   build:
@@ -16,3 +17,8 @@ phases:
         npm install
         npm run export
         aws s3 sync out s3://${SLS_ASSET_BUCKET} --delete
+
+cache:
+  paths:
+    - "next/node_modules/**/*"
+    - "next/.next/cache/**/*"
