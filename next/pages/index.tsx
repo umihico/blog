@@ -1,6 +1,5 @@
 import Container from '../components/container'
-import MoreStories from '../components/more-stories'
-import HeroPost from '../components/hero-post'
+import Stories from '../components/more-stories'
 import Intro from '../components/intro'
 import Layout from '../components/layout'
 import { getAllPosts } from '../lib/api'
@@ -13,8 +12,6 @@ type Props = {
 }
 
 const Index = ({ allPosts }: Props) => {
-    const heroPost = allPosts[0]
-    const morePosts = allPosts.slice(1)
     return (
         <>
             <Layout>
@@ -23,15 +20,7 @@ const Index = ({ allPosts }: Props) => {
                 </Head>
                 <Container>
                     <Intro />
-                    {heroPost && (
-                        <HeroPost
-                            title={heroPost.title}
-                            date={heroPost.date}
-                            slug={heroPost.slug}
-                            excerpt={heroPost.excerpt}
-                        />
-                    )}
-                    {morePosts.length > 0 && <MoreStories posts={morePosts} />}
+                    {allPosts.length > 0 && <Stories posts={allPosts} />}
                 </Container>
             </Layout>
         </>
