@@ -37,17 +37,9 @@ const Post = ({ post, morePosts, preview }: Props) => {
                                     {post.title} | Next.js Blog Example with{' '}
                                     {CMS_NAME}
                                 </title>
-                                <meta
-                                    property="og:image"
-                                    content={post.ogImage.url}
-                                />
+                                <meta property="og:image" />
                             </Head>
-                            <PostHeader
-                                title={post.title}
-                                coverImage={post.coverImage}
-                                date={post.date}
-                                author={post.author}
-                            />
+                            <PostHeader title={post.title} date={post.date} />
                             <PostBody content={post.content} />
                         </article>
                     </>
