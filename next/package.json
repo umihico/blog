@@ -8,12 +8,8 @@
         "typecheck": "tsc"
     },
     "dependencies": {
-        "@chakra-ui/react": "^1.8.5",
-        "@emotion/react": "^11.8.1",
-        "@emotion/styled": "^11.8.1",
         "classnames": "2.3.1",
         "date-fns": "2.21.3",
-        "framer-motion": "^6.2.8",
         "gray-matter": "4.0.3",
         "highlight.js": "^11.5.0",
         "marked": "^4.0.12",
