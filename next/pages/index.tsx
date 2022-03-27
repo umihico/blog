@@ -4,7 +4,7 @@ import Intro from '../components/intro'
 import Layout from '../components/layout'
 import { getAllPosts } from '../lib/api'
 import Head from 'next/head'
-import { CMS_NAME } from '../lib/constants'
+import { BLOG_TITLE } from '../lib/constants'
 import Post from '../types/post'
 
 type Props = {
@@ -16,7 +16,7 @@ const Index = ({ allPosts }: Props) => {
         <>
             <Layout>
                 <Head>
-                    <title>Next.js Blog Example with {CMS_NAME}</title>
+                    <title>{BLOG_TITLE}</title>
                 </Head>
                 <Container>
                     <Intro />
