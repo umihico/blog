@@ -40,7 +40,9 @@ const Post = ({ post, morePosts, preview }: Props) => {
                                 <meta property="og:image" />
                             </Head>
                             <PostHeader title={post.title} date={post.date} />
-                            <PostBody content={post.content} />
+                            <div className="markdown">
+                                <PostBody content={post.content} />
+                            </div>
                         </article>
                     </>
                 )}
