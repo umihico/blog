@@ -23,6 +23,14 @@ export function getPostBySlug(slug: string, fields: string[] = []) {
         content: content,
         ...meta,
     }
+
+    if (typeof full.title === 'undefined') {
+        full.content = content.replace(/^#\ .*$/m, function (match) {
+            full.title = match.slice(2)
+            return ''
+        })
+    }
+
     const filtered: Post = Object.fromEntries(
         fields.map((field) => [field, full[field]])
     )
