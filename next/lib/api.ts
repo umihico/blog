@@ -18,32 +18,29 @@ export function getPostBySlug(slug: string, fields: string[] = []) {
         [key: string]: string
     }
 
-    const full: Post = {
+    const data: Post = {
         slug: realSlug,
         content: content,
         ...meta,
     }
 
-    if (typeof full.title === 'undefined') {
-        full.content = content.replace(/^#\ .*$/m, function (match) {
-            full.title = match.slice(2)
+    if (typeof data.title === 'undefined' && fields.includes('title'))
+        data.content = content.replace(/^#\ .*$/m, function (match) {
+            data.title = match.slice(2)
             return ''
         })
-    }
 
-    if (typeof full.excerpt === 'undefined') {
-        full.excerpt = content
+    if (typeof data.excerpt === 'undefined' && fields.includes('excerpt'))
+        data.excerpt = content
             .split(/^#+\ .*$/gm)
             .filter((s) => s.trim().length > 0)[0]
             .trim()
-    }
 
-    if (typeof full.date === 'undefined') {
-        full.date = slug.split('-')[0]
-    }
+    if (typeof data.date === 'undefined' && fields.includes('date'))
+        data.date = slug.split('-')[0]
 
     const filtered: Post = Object.fromEntries(
-        fields.map((field) => [field, full[field]])
+        fields.map((field) => [field, data[field]])
     )
     return filtered
 }
