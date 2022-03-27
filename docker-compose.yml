@@ -11,3 +11,4 @@ services:
     environment:
       NEXT_PUBLIC_GITHUB_URL: ${NEXT_PUBLIC_GITHUB_URL:-https://example.com/}
       NEXT_PUBLIC_BLOG_TITLE: ${NEXT_PUBLIC_BLOG_TITLE:-My Awsome Blog}
+      NEXT_PUBLIC_BLOG_DESCRIPTION: ${NEXT_PUBLIC_BLOG_DESCRIPTION:-My Awsome Blog Description comes here.}

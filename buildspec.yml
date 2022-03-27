@@ -8,6 +8,7 @@ env:
     DEV_DOMAIN: "dev-blog.umihi.co"
     NEXT_PUBLIC_GITHUB_URL: "https://github.com/umihico/blog"
     NEXT_PUBLIC_BLOG_TITLE: "UMIHICO BLOG"
+    NEXT_PUBLIC_BLOG_DESCRIPTION: "「Today I Learned」的なブログ"
 
 phases:
   build:
