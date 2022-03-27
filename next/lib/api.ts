@@ -38,6 +38,10 @@ export function getPostBySlug(slug: string, fields: string[] = []) {
             .trim()
     }
 
+    if (typeof full.date === 'undefined') {
+        full.date = slug.split('-')[0]
+    }
+
     const filtered: Post = Object.fromEntries(
         fields.map((field) => [field, full[field]])
     )
