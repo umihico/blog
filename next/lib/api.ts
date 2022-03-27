@@ -31,6 +31,13 @@ export function getPostBySlug(slug: string, fields: string[] = []) {
         })
     }
 
+    if (typeof full.excerpt === 'undefined') {
+        full.excerpt = content
+            .split(/^#+\ .*$/gm)
+            .filter((s) => s.trim().length > 0)[0]
+            .trim()
+    }
+
     const filtered: Post = Object.fromEntries(
         fields.map((field) => [field, full[field]])
     )
