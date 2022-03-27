@@ -11,6 +11,7 @@ import Head from 'next/head'
 import { BLOG_TITLE } from '../../lib/constants'
 import markdownToHtml from '../../lib/markdownToHtml'
 import PostType from '../../types/post'
+import 'highlight.js/styles/github.css'
 
 type Props = {
     post: PostType
@@ -39,7 +40,9 @@ const Post = ({ post, morePosts, preview }: Props) => {
                                 <meta property="og:image" />
                             </Head>
                             <PostHeader title={post.title} date={post.date} />
-                            <PostBody content={post.content} />
+                            <div className="markdown">
+                                <PostBody content={post.content} />
+                            </div>
                         </article>
                     </>
                 )}
@@ -61,10 +64,7 @@ export async function getStaticProps({ params }: Params) {
         'title',
         'date',
         'slug',
-        'author',
         'content',
-        'ogImage',
-        'coverImage',
     ])
     const content = await markdownToHtml(post.content || '')
 

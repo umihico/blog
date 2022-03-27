@@ -2,7 +2,7 @@ import fs from 'fs'
 import { join } from 'path'
 import matter from 'gray-matter'
 
-const postsDirectory = join(process.cwd(), '_posts')
+const postsDirectory = join(process.cwd(), '../posts')
 
 export function getPostSlugs() {
     return fs.readdirSync(postsDirectory)
@@ -12,29 +12,37 @@ export function getPostBySlug(slug: string, fields: string[] = []) {
     const realSlug = slug.replace(/\.md$/, '')
     const fullPath = join(postsDirectory, `${realSlug}.md`)
     const fileContents = fs.readFileSync(fullPath, 'utf8')
-    const { data, content } = matter(fileContents)
+    const { data: meta, content } = matter(fileContents)
 
-    type Items = {
+    type Post = {
         [key: string]: string
     }
 
-    const items: Items = {}
+    const data: Post = {
+        slug: realSlug,
+        content: content,
+        ...meta,
+    }
 
-    // Ensure only the minimal needed data is exposed
-    fields.forEach((field) => {
-        if (field === 'slug') {
-            items[field] = realSlug
-        }
-        if (field === 'content') {
-            items[field] = content
-        }
+    if (typeof data.title === 'undefined' && fields.includes('title'))
+        data.content = content.replace(/^#\ .*$/m, function (match) {
+            data.title = match.slice(2)
+            return ''
+        })
 
-        if (typeof data[field] !== 'undefined') {
-            items[field] = data[field]
-        }
-    })
+    if (typeof data.excerpt === 'undefined' && fields.includes('excerpt'))
+        data.excerpt = content
+            .split(/^#+\ .*$/gm)
+            .filter((s) => s.trim().length > 0)[0]
+            .trim()
 
-    return items
+    if (typeof data.date === 'undefined' && fields.includes('date'))
+        data.date = slug.split('-')[0]
+
+    const filtered: Post = Object.fromEntries(
+        fields.map((field) => [field, data[field]])
+    )
+    return filtered
 }
 
 export function getAllPosts(fields: string[] = []) {
