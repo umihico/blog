@@ -13,7 +13,7 @@ references:
 1. Workflowsタブを開き、＋ボタンからBlank Workflow
 1. 作業スペースを右クリックして[Triggers→Hotkey](https://www.alfredapp.com/help/workflows/triggers/hotkey/)または[Inputs→Keyword](https://www.alfredapp.com/help/workflows/inputs/keyword/)など好みのトリガーを登録
 1. 作成されたトリガーを右クリックして[Insert After→Outputs→Copy to Clipboard](https://www.alfredapp.com/help/workflows/outputs/copy-to-clipboard/)
-1. テキストエリアに{date:short}を入力
+1. テキストエリアに`{date:short}`を入力
 1. `Automatically paste to front most app`にチェックしてSave
 
 実行するとYYYY/MM/DD形式で現在の日付がペーストされる
