@@ -20,3 +20,19 @@
 .markdown code {
   @apply bg-slate-200 px-1 py-0.5 rounded-lg;
 }
+
+.markdown ol {
+  @apply my-0 ml-6
+}
+
+.markdown ul {
+  @apply my-0 ml-6
+}
+
+.markdown ol li {
+  @apply list-decimal py-1
+}
+
+.markdown ul li {
+  @apply list-disc py-1
+}
