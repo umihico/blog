@@ -30,6 +30,8 @@ accounts:
       - "OrganizationAccountAccessRole"
       IAMUser:
       - "nuke"
+      IAMUserPolicyAttachment:
+      - "nuke -> AdministratorAccess"
 EOF
 ```
 
@@ -41,7 +43,7 @@ resource-types:
     - IAMRole
 ```
 
-また実行の際に、`nuke`という実行用のIAMユーザーを作ってAdmin権限を与えて削除対象から除外してある。意図としては親アカウントからAssume Roleしてaws-nukeする場合だと、うっかりオペミスでAssume Roleせずに親アカウントを消すリスクがないか心配になったため
+また実行の際に、`nuke`という実行用のIAMユーザーを作ってAdministratorAccess権限を与えて削除対象から除外してある。意図としては親アカウントからAssume Roleしてaws-nukeする場合だと、うっかりオペミスでAssume Roleせずに親アカウントを消すリスクがないか心配になったため
 
 ## アカウントエイリアスつける
 
