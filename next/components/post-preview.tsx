@@ -3,6 +3,8 @@ import DateFormatter from './date-formatter'
 import CoverImage from './cover-image'
 import Link from 'next/link'
 import Author from '../types/author'
+import { markdownToHtmlSync } from '../lib/markdownToHtml'
+import markdownStyles from './markdown-styles.module.css'
 
 type Props = {
     title: string
@@ -22,7 +24,14 @@ const PostPreview = ({ title, date, excerpt, slug }: Props) => {
                     <a className="hover:underline">{title}</a>
                 </Link>
             </h3>
-            <p className="text-lg leading-relaxed mb-4">{excerpt}</p>
+            <p className="text-lg leading-relaxed mb-4">
+                <div
+                    className={markdownStyles['markdown']}
+                    dangerouslySetInnerHTML={{
+                        __html: markdownToHtmlSync(excerpt),
+                    }}
+                />
+            </p>
         </div>
     )
 }
