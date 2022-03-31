@@ -6,7 +6,7 @@ references:
 
 # AWSアカウント内のECSタスク定義を全て除去するワンライナー
 
-aws-nukeで削除可能なリソースを調べたら、タスク定義が大量に残っていることが分かったたので、以下のコマンドで削除した。
+aws-nukeで削除可能なリソースを調べたら、タスク定義が大量に残っていることが分かったたので、以下のコマンドで削除した。（当時は怖くてaws-nukeは実行しなかった）
 
 ```bash
 aws ecs list-task-definitions --region ap-northeast-1 \\
