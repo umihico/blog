@@ -1,4 +1,3 @@
-
 ---
 references:
   - "https://hacknote.jp/archives/13756/"
@@ -24,15 +23,13 @@ regions:
 account-blocklist:
   - "000000000000" # https://github.com/rebuy-de/aws-nuke/issues/520
 
-resource-types:
-  targets:
-    - IAMRole
-
 accounts:
   $THIS_ACCOUNT_ID:
     filters:
       IAMRole:
       - "OrganizationAccountAccessRole"
+      IAMUser:
+      - "nuke"
 EOF
 ```
 
@@ -43,6 +40,8 @@ resource-types:
   targets:
     - IAMRole
 ```
+
+また実行の際に、`nuke`という実行用のIAMユーザーを作ってAdmin権限を与えて削除対象から除外してある。意図としては親アカウントからAssume Roleしてaws-nukeする場合だと、うっかりオペミスでAssume Roleせずに親アカウントを消すリスクがないか心配になったため
 
 ## アカウントエイリアスつける
 
@@ -56,8 +55,16 @@ resource-types:
 mkdir bin && wget -c "https://github.com/rebuy-de/aws-nuke/releases/download/v2.16.0/aws-nuke-v2.16.0-linux-amd64.tar.gz" -O - | sudo tar -xz -C $HOME/bin
 ```
 
-## 実行（ドライラン）
+## 実行
+
 
 ```bash
+# ドライラン
 aws-nuke-v2.16.0-linux-amd64 -c config.yml
+
+# ドライラン＋ログ出力（--forceでエイリアスを確認する安全措置をスキップ）
+aws-nuke-v2.16.0-linux-amd64 -c config.yml --force  |& tee aws-nuke-log.txt
+
+# 本番実行＋ログ出力
+aws-nuke-v2.16.0-linux-amd64 -c config.yml --force --no-dry-run |& tee aws-nuke-log.txt
 ```
