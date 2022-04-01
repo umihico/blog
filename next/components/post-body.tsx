@@ -1,15 +1,15 @@
 import markdownStyles from './markdown-styles.module.css'
 
 type Props = {
-    content: string
+    contentHtml: string
 }
 
-const PostBody = ({ content }: Props) => {
+const PostBody = ({ contentHtml }: Props) => {
     return (
         <div className="max-w-2xl mx-auto">
             <div
                 className={markdownStyles['markdown']}
-                dangerouslySetInnerHTML={{ __html: content }}
+                dangerouslySetInnerHTML={{ __html: contentHtml }}
             />
         </div>
     )

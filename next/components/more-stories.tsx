@@ -15,7 +15,7 @@ const Stories = ({ posts }: Props) => {
                         title={post.title}
                         date={post.date}
                         slug={post.slug}
-                        excerpt={post.excerpt}
+                        excerptHtml={post.excerptHtml}
                     />
                 ))}
             </div>

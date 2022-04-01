@@ -2,6 +2,7 @@ import fs from 'fs'
 import { join } from 'path'
 import matter from 'gray-matter'
 import PostType from '../types/post'
+import { markdownToHtml } from '../lib/markdownToHtml'
 
 const postsDirectory = join(process.cwd(), '../posts')
 
@@ -47,6 +48,8 @@ export function getPostBySlug(slug: string): PostType {
     const post: PostType = {
         slug: realSlug,
         content,
+        contentHtml: markdownToHtml(content),
+        excerptHtml: markdownToHtml(excerpt),
         title: meta.title,
         excerpt,
         date,

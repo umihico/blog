@@ -8,6 +8,8 @@ type PostType = {
     references: string[]
     tags: string[]
     content: string
+    contentHtml: string
+    excerptHtml: string
 }
 
 export default PostType

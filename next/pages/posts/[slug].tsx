@@ -9,7 +9,6 @@ import { getPostBySlug, getAllPosts } from '../../lib/api'
 import PostTitle from '../../components/post-title'
 import Head from 'next/head'
 import { BLOG_TITLE } from '../../lib/constants'
-import markdownToHtml from '../../lib/markdownToHtml'
 import PostType from '../../types/post'
 import 'highlight.js/styles/github.css'
 import { GITHUB_URL } from '../../lib/constants'
@@ -68,15 +67,8 @@ type Params = {
 
 export async function getStaticProps({ params }: Params) {
     const post = getPostBySlug(params.slug)
-    const content = await markdownToHtml(post.content || '')
-
     return {
-        props: {
-            post: {
-                ...post,
-                content,
-            },
-        },
+        props: { post },
     }
 }
 
