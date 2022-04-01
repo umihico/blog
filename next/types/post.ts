@@ -5,6 +5,7 @@ type PostType = {
     title: string
     date: string
     excerpt: string
+    references: string[]
     content: string
 }
 
