@@ -29,6 +29,8 @@ accounts:
     filters:
       IAMRole:
       - "OrganizationAccountAccessRole"
+      IAMRolePolicyAttachment:
+      - "OrganizationAccountAccessRole -> AdministratorAccess"
       IAMUser:
       - "nuke"
       IAMUserPolicyAttachment:
