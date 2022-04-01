@@ -18,6 +18,7 @@ THIS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 cat <<EOF > config.yml
 regions:
   - ap-northeast-1
+  - us-east-1
   - global
 
 account-blocklist:
@@ -28,6 +29,8 @@ accounts:
     filters:
       IAMRole:
       - "OrganizationAccountAccessRole"
+      IAMRolePolicyAttachment:
+      - "OrganizationAccountAccessRole -> AdministratorAccess"
       IAMUser:
       - "nuke"
       IAMUserPolicyAttachment:
