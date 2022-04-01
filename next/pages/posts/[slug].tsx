@@ -12,6 +12,7 @@ import { BLOG_TITLE } from '../../lib/constants'
 import markdownToHtml from '../../lib/markdownToHtml'
 import PostType from '../../types/post'
 import 'highlight.js/styles/github.css'
+import { GITHUB_URL } from '../../lib/constants'
 
 type Props = {
     post: PostType
@@ -43,6 +44,12 @@ const Post = ({ post, morePosts, preview }: Props) => {
                             <div className="markdown">
                                 <PostBody content={post.content} />
                             </div>
+                            <a
+                                className="mt-20 grid justify-items-center font-bold hover:underline"
+                                href={`${GITHUB_URL}/edit/main/posts/${post.slug}.md`}
+                            >
+                                Edit this aricle on GitHub
+                            </a>
                         </article>
                     </>
                 )}
