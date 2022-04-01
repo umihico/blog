@@ -68,7 +68,7 @@ type Params = {
 
 export async function getStaticProps({ params }: Params) {
     const post = getPostBySlug(params.slug)
-    if (post.references) {
+    if (post.references.length > 0) {
         post.content =
             post.content +
             '\n## References\n\n' +
