@@ -1,3 +1,7 @@
+---
+tags: "Docker,Next.js,Ruby on Rails"
+---
+
 # WEBフレームワークをDockerで作るワンライナー
 
 Next.jsとRuby on RailsのプロジェクトをDockerを通じて環境依存せず指定した言語バージョンで構築する
