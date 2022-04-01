@@ -6,6 +6,7 @@ type PostType = {
     date: string
     excerpt: string
     references: string[]
+    tags: string[]
     content: string
 }
 
