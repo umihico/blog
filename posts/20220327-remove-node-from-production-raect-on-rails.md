@@ -1,5 +1,5 @@
 ---
-tags: "CircleCI,Docker,AWS,Node.js,Ruby on Rails"
+tags: "Docker,React,Ruby on Rails,CircleCI"
 ---
 
 # React on Railsで本番イメージをNodeレスにした

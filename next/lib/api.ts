@@ -53,7 +53,7 @@ export function getPostBySlug(slug: string): PostType {
         title: meta.title,
         excerpt,
         date,
-        tags: String(meta.tags).split(','),
+        tags: String(meta.tags).split(',').sort(),
         references: meta.references ? meta.references : [],
     }
     return post

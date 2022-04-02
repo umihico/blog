@@ -41,7 +41,10 @@ const Post = ({ post, morePosts, preview }: Props) => {
                             </Head>
                             <PostHeader title={post.title} date={post.date} />
                             <div className="markdown">
-                                <PostBody content={post.content} />
+                                <PostBody
+                                    contentHtml={post.contentHtml}
+                                    tags={post.tags}
+                                />
                             </div>
                             <a
                                 className="mt-20 grid justify-items-center font-bold hover:underline"
