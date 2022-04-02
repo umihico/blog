@@ -1,4 +1,5 @@
 import { parseISO, format } from 'date-fns'
+import Link from 'next/link'
 
 type Props = {
     tags: string[]
@@ -16,13 +17,15 @@ const Tags = ({ tags }: Props) => {
         <>
             <p className="flex flex-wrap mb-3">
                 {tags.map((tag) => (
-                    <a
+                    <Link
                         key={tag}
-                        href={`/tags/${toPath(tag)}`}
-                        className="text-sky-900 text-opacity-80 rounded-lg bg-sky-100 px-2 py-1 mb-1 mr-2"
+                        as={`/tags/${toPath(tag)}`}
+                        href="/tags/[tag]"
                     >
-                        #{tag}
-                    </a>
+                        <a className="text-sky-900 text-opacity-80 rounded-lg bg-sky-100 px-2 py-1 mb-1 mr-2">
+                            #{tag}
+                        </a>
+                    </Link>
                 ))}
             </p>
         </>
