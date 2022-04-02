@@ -1,4 +1,5 @@
 ---
+tags: "AWS"
 references:
   - "https://hacknote.jp/archives/13756/"
   - "https://github.com/rebuy-de/aws-nuke"

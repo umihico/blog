@@ -2,6 +2,7 @@ import fs from 'fs'
 import { join } from 'path'
 import matter from 'gray-matter'
 import PostType from '../types/post'
+import { markdownToHtml } from '../lib/markdownToHtml'
 
 const postsDirectory = join(process.cwd(), '../posts')
 
@@ -15,7 +16,7 @@ export function getPostBySlug(slug: string): PostType {
     const fileContents = fs.readFileSync(fullPath, 'utf8')
     const { data: meta, content: rawContent } = matter(fileContents)
 
-    const content = rawContent.replace(/^#\ .*$/m, function (match) {
+    let content = rawContent.replace(/^#\ .*$/m, function (match) {
         if (typeof meta.title === 'undefined') {
             meta.title = match.slice(2)
         }
@@ -33,12 +34,26 @@ export function getPostBySlug(slug: string): PostType {
     const date =
         typeof meta.date === 'undefined' ? slug.split('-')[0] : meta.date
 
+    const references = meta.references
+        ? Array(...meta.references).map((n) => String(n))
+        : []
+
+    if (references.length > 0) {
+        content =
+            content +
+            '\n## References\n\n' +
+            references.map((url) => `- ${url}`).join('\n')
+    }
+
     const post: PostType = {
         slug: realSlug,
         content,
+        contentHtml: markdownToHtml(content),
+        excerptHtml: markdownToHtml(excerpt),
         title: meta.title,
         excerpt,
         date,
+        tags: String(meta.tags).split(',').sort(),
         references: meta.references ? meta.references : [],
     }
     return post
