@@ -18,7 +18,7 @@ const Tags = ({ tags }: Props) => {
                 {tags.map((tag) => (
                     <a
                         key={tag}
-                        href="#"
+                        href={`/tags/${toPath(tag)}`}
                         className="text-sky-900 text-opacity-80 rounded-lg bg-sky-100 px-2 py-1 mb-1 mr-2"
                     >
                         #{tag}
