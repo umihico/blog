@@ -36,5 +36,5 @@
 }
 
 .markdown a {
-  @apply underline decoration-sky-500 decoration-2 hover:decoration-4 underline-offset-4
+  @apply underline decoration-sky-300 decoration-2 hover:decoration-4 underline-offset-4
 }
