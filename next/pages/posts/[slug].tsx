@@ -9,7 +9,6 @@ import { getPostBySlug, getAllPosts } from '../../lib/api'
 import PostTitle from '../../components/post-title'
 import Head from 'next/head'
 import { BLOG_TITLE } from '../../lib/constants'
-import markdownToHtml from '../../lib/markdownToHtml'
 import PostType from '../../types/post'
 import 'highlight.js/styles/github.css'
 import { GITHUB_URL } from '../../lib/constants'
@@ -42,7 +41,10 @@ const Post = ({ post, morePosts, preview }: Props) => {
                             </Head>
                             <PostHeader title={post.title} date={post.date} />
                             <div className="markdown">
-                                <PostBody content={post.content} />
+                                <PostBody
+                                    contentHtml={post.contentHtml}
+                                    tags={post.tags}
+                                />
                             </div>
                             <a
                                 className="mt-20 grid justify-items-center font-bold hover:underline"
@@ -68,21 +70,8 @@ type Params = {
 
 export async function getStaticProps({ params }: Params) {
     const post = getPostBySlug(params.slug)
-    if (post.references.length > 0) {
-        post.content =
-            post.content +
-            '\n## References\n\n' +
-            post.references.map((url) => `- ${url}`).join('\n')
-    }
-    const content = await markdownToHtml(post.content || '')
-
     return {
-        props: {
-            post: {
-                ...post,
-                content,
-            },
-        },
+        props: { post },
     }
 }
 

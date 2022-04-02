@@ -6,7 +6,10 @@ type PostType = {
     date: string
     excerpt: string
     references: string[]
+    tags: string[]
     content: string
+    contentHtml: string
+    excerptHtml: string
 }
 
 export default PostType
