@@ -1,5 +1,5 @@
 ---
-tags: "AWS,AWS App Runner"
+tags: "AWS,AWS App Runner,Terraform"
 ---
 
 # Terraformで空のECRレポジトリを参照するApp Runnerをapplyしたくて辛かった話
