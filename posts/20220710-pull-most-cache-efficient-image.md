@@ -1,4 +1,3 @@
-
 ---
 tags: "bash,jq,CI"
 ---
