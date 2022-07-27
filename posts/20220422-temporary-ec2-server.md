@@ -26,9 +26,10 @@ provider "aws" {
   region = "ap-northeast-1"
 }
 
-variable "vpc_id" { type = string }    # TF_VAR_vpc_id
-variable "subnet_id" { type = string } # TF_VAR_subnet_id
-variable "my_ip" { type = string }     # TF_VAR_my_ip
+variable "vpc_id" { type = string }            # TF_VAR_vpc_id
+variable "subnet_id" { type = string }         # TF_VAR_subnet_id
+variable "my_ip" { type = string }             # TF_VAR_my_ip
+variable "security_group_id" { type = string } # TF_VAR_security_group_id
 
 resource "aws_security_group" "temp" {
   name   = "temp"
@@ -42,7 +43,6 @@ resource "aws_security_group" "temp" {
     cidr_blocks = ["${var.my_ip}/32"]
   }
 
-
   egress {
     from_port        = 0
     to_port          = 0
@@ -50,15 +50,39 @@ resource "aws_security_group" "temp" {
     cidr_blocks      = ["0.0.0.0/0"]
     ipv6_cidr_blocks = ["::/0"]
   }
+}
 
+resource "aws_iam_role" "temp_role" {
+  name = "temp_role"
+  assume_role_policy = jsonencode({
+    "Version" : "2012-10-17"
+    "Statement" : [
+      {
+        "Action" : "sts:AssumeRole"
+        "Effect" : "Allow"
+        "Principal" : {
+          "Service" : ["ec2.amazonaws.com"]
+        },
+      },
+    ]
+  })
+  managed_policy_arns = [
+    "arn:aws:iam::aws:policy/PowerUserAccess",
+  ]
+}
+
+resource "aws_iam_instance_profile" "temp" {
+  name = "temp_role_profile"
+  role = aws_iam_role.temp_role.name
 }
 
 resource "aws_instance" "temp" {
   ami                         = "ami-0bcc04d20228d0cf6"
-  vpc_security_group_ids      = [aws_security_group.allow_umihico.id]
+  vpc_security_group_ids      = [aws_security_group.temp.id, var.security_group_id]
   subnet_id                   = var.subnet_id
   key_name                    = aws_key_pair.umihico.id
   instance_type               = "t2.micro"
+  iam_instance_profile        = "temp_role_profile"
   associate_public_ip_address = true
 
   root_block_device {
@@ -98,4 +122,45 @@ resource "aws_key_pair" "umihico" {
   key_name   = "umihico"
   public_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFUMIHICoCb3Sy2n1qPXOxc2mFBqW9Hg0dRigxl2F3nW"
 }
+
+output "temp" {
+  value = {
+    instance : aws_instance.temp
+  }
+}
+```
+
+applyするときのスクリプト
+
+```bash
+#!/bin/bash
+
+export TF_VAR_vpc_id=
+export TF_VAR_subnet_id=
+export TF_VAR_security_group_id=
+export TF_VAR_my_ip=$(curl -s http://checkip.amazonaws.com)
+
+cd $(dirname $0)
+
+terraform init
+terraform apply -auto-approve
+PUBLIC_DNS=$(terraform output -json | jq -r ".temp.value.instance.public_dns")
+echo ssh ec2-user@${PUBLIC_DNS}
+# terraform destroy -auto-approve
+```
+
+sshで入ってdumpしたりするコマンド
+```bash
+
+export DATABASE_USER=
+export PORT=
+export DATABASE_NAME=
+export MYSQL_PWD=
+export DATABASE_HOST=
+
+# dump
+mysqldump -u $DATABASE_USER -h $DATABASE_HOST -P $PORT --set-gtid-purged=OFF $DATABASE_NAME > dump.sql
+
+# import
+cat dump.sql | mysql -u $DATABASE_USER -P $PORT --password=$MYSQL_PWD -h $DATABASE_HOST $DATABASE_NAME
 ```
