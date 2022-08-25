@@ -11,7 +11,7 @@ tags: "Ruby on Rails"
 # lib/tasks/hooks.rake
 namespace :hooks do
   desc "Rakeタスクの実行ログを記録するラッパー"
-  task after_rake: :environment doaccount
+  task after_rake: :environment do
     puts "Doing #{Rake.application.top_level_tasks[0]}"
   end
 end
