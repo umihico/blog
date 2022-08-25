@@ -7,6 +7,8 @@ tags: "Ruby on Rails"
 調べてみると`Rake::Task.tasks.each`で全タスクにenhanceする例が多く見つかったが、そうなると:environmentなど継承先のタスクにも付与されるからか、なぜか私の環境では実行したいタスクより先に実行されてしまった。
 これを防ぎ正しく後から実行するには`Rake::Task[Rake.application.top_level_tasks[0]]`と指定する必要があった
 
+## コード
+
 ```ruby
 # lib/tasks/hooks.rake
 namespace :hooks do
