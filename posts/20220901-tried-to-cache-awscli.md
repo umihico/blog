@@ -2,7 +2,7 @@
 tags: "CircleCI,AWS"
 ---
 
-# AWSCLIのインストールにキャッシュを使ってみたけど対して減らなかった話
+# AWSCLIのインストールにキャッシュを使ってみたけど大して減らなかった話
 
 ジョブ毎に[https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip](https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip)からダウンロードしてるのでこれをCircleCIのキャッシュを入れてみましたが、もともと３秒の処理時間は全く改善しなかった話
 
