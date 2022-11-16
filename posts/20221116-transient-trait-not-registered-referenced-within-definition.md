@@ -7,7 +7,9 @@ tags: "Rails,Rspec"
 見ている情報が古かったのか、ずっと誤った書き方をして以下のエラーと格闘していました
 
 ```
-KeyError: Trait not registered: "title" referenced within "article" definition
+KeyError: 
+Trait not registered: 
+"title" referenced within "article" definition
 ```
 
 
