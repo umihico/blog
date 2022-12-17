@@ -1,0 +1,35 @@
+---
+tags: "Rails,Rspec"
+---
+
+# transient使おうとしてTrait not registered referenced within definition
+
+見ている情報が古かったのか、ずっと誤った書き方をして以下のエラーと格闘していました
+
+```bash
+KeyError: 
+Trait not registered: 
+"title" referenced within "article" definition
+```
+
+
+## 誤ってた書き方
+
+```ruby
+factory :article do
+  transient do
+    title nil
+  end
+end
+
+```
+
+## 正しくはこう
+
+```ruby
+factory :article do
+  transient do
+    title { nil } # ここ
+  end
+end
+```
