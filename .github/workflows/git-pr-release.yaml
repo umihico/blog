@@ -16,6 +16,8 @@ jobs:
         with:
           fetch-depth: 0 # git-pr-release needs the git histories
       - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.1"
       - run: gem install --no-document git-pr-release
       - run: git-pr-release
         env:
