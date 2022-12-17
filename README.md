@@ -22,3 +22,18 @@ docker-compose up
 ```bash
 docker-compose -f docker-compose.yml -f docker-compose.static.yml up
 ```
+
+### Github Actionsへ環境変数のセット
+
+```bash
+env | grep \
+-e AWS_DEFAULT_REGION \
+-e SOURCE_LOCATION \
+-e PROD_DOMAIN \
+-e DEV_DOMAIN \
+-e BLOG_ACCOUNT_ID \
+-e NEXT_PUBLIC_GITHUB_URL \
+-e NEXT_PUBLIC_BLOG_TITLE \
+-e NEXT_PUBLIC_BLOG_DESCRIPTION > .env.secrets
+gh secret set -f .env.secrets
+```
