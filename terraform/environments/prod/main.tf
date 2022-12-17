@@ -10,9 +10,10 @@ terraform {
 locals {
   parent_vars = jsondecode(var.vars)
   vars = merge(local.parent_vars, {
-    prefix = "prod"
-    branch = "main"
-    domain = local.parent_vars.prod_domain
+    prefix     = "prod"
+    branch     = "main"
+    domain     = local.parent_vars.prod_domain
+    basic_auth = false
   })
 }
 module "base" {

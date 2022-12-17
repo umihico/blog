@@ -8,7 +8,23 @@ terraform {
 }
 
 locals {
-  origin_id = "s3origin"
+  origin_id        = "s3origin"
+  basic_auth_logic = <<CODE
+    // https://dev.classmethod.jp/articles/apply-basic-authentication-password-with-cloudfront-functions/
+    // ユーザー名は ${var.vars.github_repository_name}
+    // パスワードは ${random_password.basic_auth.result}
+    var authString = "Basic ${base64encode("${var.vars.github_repository_name}:${random_password.basic_auth.result}")}";
+    if (
+      typeof headers.authorization === "undefined" ||
+      headers.authorization.value !== authString
+    ) {
+      return {
+        statusCode: 401,
+        statusDescription: "Unauthorized",
+        headers: { "www-authenticate": { value: "Basic" } }
+      };
+    }
+CODE
 }
 
 resource "aws_cloudfront_origin_access_identity" "this" {
@@ -60,7 +76,7 @@ resource "aws_cloudfront_distribution" "this" {
 
     function_association {
       event_type   = "viewer-request"
-      function_arn = aws_cloudfront_function.append_index_html.arn
+      function_arn = aws_cloudfront_function.viewer_request.arn
     }
   }
 
@@ -88,16 +104,25 @@ module "route53" {
   }
 }
 
-resource "aws_cloudfront_function" "append_index_html" {
-  name    = "${var.vars.prefix}-append-index-html"
+resource "random_password" "basic_auth" {
+  # 値はここで確認できる
+  # https://us-east-1.console.aws.amazon.com/cloudfront/v3/home?region=ap-northeast-1#/functions/dev-viewer-request
+  length = 20
+}
+
+resource "aws_cloudfront_function" "viewer_request" {
+  # You can associate a single function per event type. See Cloudfront Functions for more information.
+  # とのことで、末尾スラッシュ加工と、ベーシック認証が一つのコードに同居している
+  name    = "${var.vars.prefix}-viewer-request"
   runtime = "cloudfront-js-1.0"
-  comment = "https://dev.classmethod.jp/articles/cloudfront-url-cff/"
   publish = true
   code    = <<CODE
 function handler(event) {
     var request = event.request;
+    var headers = request.headers;
     var uri = request.uri;
 
+    // https://dev.classmethod.jp/articles/cloudfront-url-cff/
     // Check whether the URI is missing a file name.
     if (uri.endsWith('/')) {
         request.uri += 'index.html';
@@ -106,6 +131,8 @@ function handler(event) {
     else if (!uri.includes('.')) {
         request.uri += '/index.html';
     }
+
+    ${var.vars.basic_auth ? local.basic_auth_logic : ""}
 
     return request;
 }
