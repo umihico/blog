@@ -40,3 +40,14 @@ env | grep \
 -e NEXT_PUBLIC_BLOG_DESCRIPTION > .env.secrets
 gh secret set -f .env.secrets
 ```
+
+### Terraformの運用について
+
+Codebuildで実行しているが、`PowerUserAccess`なのでIAM系をいじる場合は手動で
+
+```bash
+# 手動実行時の手順書
+eval $(save-session-key $AWS_PROFILE) # save-session-keyについては[ここ](https://github.com/umihico/dotfiles/blob/e18d72381800bc84f54c407a5fae1e4fcd0545a5/.functions.sh)を参照
+unset AWS_PROFILE
+terragrunt run-all apply
+```
