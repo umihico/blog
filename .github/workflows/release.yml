@@ -1,0 +1,43 @@
+name: Release
+
+on: [push]
+
+permissions:
+  id-token: write # https://github.com/aws-actions/configure-aws-credentials/issues/271#issuecomment-931012696
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      # AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AWS_SESSION_TOKENはactでローカル実行時に渡される、CIはOpen ID Connectなので不要
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+      AWS_ACCOUNT_ID: ${{ secrets.BLOG_ACCOUNT_ID }}
+      AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+      AWS_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+      GH_ACTIONS_ROLE: ${{ secrets.GH_ACTIONS_ROLE }}
+      NEXT_PUBLIC_HOST_NAME: ${{ secrets.NEXT_PUBLIC_HOST_NAME }}
+      SOURCE_LOCATION: ${{ secrets.SOURCE_LOCATION }}
+      DOMAIN: ${{ (github.ref_name == 'main' && secrets.PROD_DOMAIN) || secrets.DEV_DOMAIN }}
+      ASSETS_BUCKET: ${{ (github.ref_name == 'main' && secrets.PROD_ASSETS_BUCKET) || secrets.DEV_ASSETS_BUCKET }}
+      NEXT_PUBLIC_GITHUB_URL: ${{ secrets.NEXT_PUBLIC_GITHUB_URL }}
+      NEXT_PUBLIC_BLOG_TITLE: ${{ secrets.NEXT_PUBLIC_BLOG_TITLE }}
+      NEXT_PUBLIC_BLOG_DESCRIPTION: ${{ secrets.NEXT_PUBLIC_BLOG_DESCRIPTION }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+      - working-directory: ./next
+        run: npm install
+      - name: Fetch AWS credentials
+        if: ${{ !env.ACT }}
+        uses: ./.github/actions/open-id-connect
+      - name: Release
+        working-directory: ./next
+        run: |
+          npm run export
+          aws s3 sync out s3://${{ env.ASSETS_BUCKET }} --delete
