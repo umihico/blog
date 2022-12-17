@@ -22,3 +22,33 @@ docker-compose up
 ```bash
 docker-compose -f docker-compose.yml -f docker-compose.static.yml up
 ```
+
+### Github Actionsへ環境変数のセット
+
+```bash
+env | grep \
+-e AWS_DEFAULT_REGION \
+-e SOURCE_LOCATION \
+-e PROD_DOMAIN \
+-e DEV_DOMAIN \
+-e BLOG_ACCOUNT_ID \
+-e NEXT_PUBLIC_GITHUB_URL \
+-e NEXT_PUBLIC_BLOG_TITLE \
+-e NEXT_PUBLIC_GTM_ID \
+-e GH_ACTIONS_ROLE \
+-e PROD_ASSETS_BUCKET \
+-e DEV_ASSETS_BUCKET \
+-e NEXT_PUBLIC_BLOG_DESCRIPTION > .env.secrets
+gh secret set -f .env.secrets
+```
+
+### Terraformの運用について
+
+Codebuildで実行しているが、`PowerUserAccess`なのでIAM系をいじる場合は手動で
+
+```bash
+# 手動実行時の手順書
+eval $(save-session-key $AWS_PROFILE) # save-session-keyについては[ここ](https://github.com/umihico/dotfiles/blob/e18d72381800bc84f54c407a5fae1e4fcd0545a5/.functions.sh)を参照
+unset AWS_PROFILE
+terragrunt run-all apply
+```
