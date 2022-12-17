@@ -34,6 +34,9 @@ env | grep \
 -e BLOG_ACCOUNT_ID \
 -e NEXT_PUBLIC_GITHUB_URL \
 -e NEXT_PUBLIC_BLOG_TITLE \
+-e GH_ACTIONS_ROLE \
+-e PROD_ASSETS_BUCKET \
+-e DEV_ASSETS_BUCKET \
 -e NEXT_PUBLIC_BLOG_DESCRIPTION > .env.secrets
 gh secret set -f .env.secrets
 ```

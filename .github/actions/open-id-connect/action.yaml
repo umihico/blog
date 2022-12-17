@@ -1,0 +1,12 @@
+name: Assume role with web identity
+description: "ref: https://tech.guitarrapc.com/entry/2021/11/05/025150"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Assume role with web identity
+      uses: aws-actions/configure-aws-credentials@master
+      with:
+        aws-region: ${{ env.AWS_REGION }}
+        role-to-assume: ${{ env.GH_ACTIONS_ROLE }}
+        role-session-name: github-actions-${{ github.job }}-id${{ github.run_id }}
