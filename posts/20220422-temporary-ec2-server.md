@@ -85,7 +85,7 @@ resource "aws_iam_instance_profile" "temp" {
 
 resource "aws_instance" "temp" {
   ami                         = "ami-0bcc04d20228d0cf6"
-  vpc_security_group_ids      = [aws_security_group.temp.id, var.security_group_id]
+  vpc_security_group_ids      = concat([aws_security_group.temp.id], length(var.security_group_id) > 0 ? [var.security_group_id] : [])
   subnet_id                   = var.subnet_id
   key_name                    = aws_key_pair.umihico.id
   instance_type               = "t2.micro"
