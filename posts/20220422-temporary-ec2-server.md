@@ -72,6 +72,7 @@ resource "aws_iam_role" "temp_role" {
     ]
   })
   managed_policy_arns = [
+    "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
     "arn:aws:iam::aws:policy/PowerUserAccess",
   ]
 }
@@ -150,8 +151,11 @@ cd $(dirname $0)
 
 terraform init
 terraform apply -auto-approve
-PUBLIC_DNS=$(terraform output -json | jq -r ".temp.value.instance.public_dns")
+OUTPUT=$(terraform output -json)
+PUBLIC_DNS=$(echo $OUTPUT | jq -r ".temp.value.instance.public_dns")
+INSTANCE_ID=$(echo $OUTPUT | jq -r ".temp.value.instance.id")
 echo ssh ec2-user@${PUBLIC_DNS}
+echo aws ssm start-session --target ${INSTANCE_ID}
 # terraform destroy -auto-approve
 ```
 
