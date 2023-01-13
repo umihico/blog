@@ -31,8 +31,13 @@ variable "subnet_id" { type = string }         # TF_VAR_subnet_id
 variable "my_ip" { type = string }             # TF_VAR_my_ip
 variable "security_group_id" { type = string } # TF_VAR_security_group_id
 
+resource "random_integer" "priority" {
+  min = 1000000
+  max = 10000000
+}
+
 resource "aws_security_group" "temp" {
-  name   = "temp"
+  name   = "temp${random_integer.priority.result}"
   vpc_id = var.vpc_id
 
   ingress {
@@ -53,7 +58,7 @@ resource "aws_security_group" "temp" {
 }
 
 resource "aws_iam_role" "temp_role" {
-  name = "temp_role"
+  name = "temp_role${random_integer.priority.result}"
   assume_role_policy = jsonencode({
     "Version" : "2012-10-17"
     "Statement" : [
@@ -71,8 +76,9 @@ resource "aws_iam_role" "temp_role" {
   ]
 }
 
+
 resource "aws_iam_instance_profile" "temp" {
-  name = "temp_role_profile"
+  name = "temp_role_profile${random_integer.priority.result}"
   role = aws_iam_role.temp_role.name
 }
 
@@ -82,7 +88,7 @@ resource "aws_instance" "temp" {
   subnet_id                   = var.subnet_id
   key_name                    = aws_key_pair.umihico.id
   instance_type               = "t2.micro"
-  iam_instance_profile        = "temp_role_profile"
+  iam_instance_profile        = "temp_role_profile${random_integer.priority.result}"
   associate_public_ip_address = true
 
   root_block_device {
@@ -119,7 +125,7 @@ resource "aws_instance" "temp" {
 
 resource "aws_key_pair" "umihico" {
   # https://github.com/umihico.keys
-  key_name   = "umihico"
+  key_name   = "umihico${random_integer.priority.result}"
   public_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFUMIHICoCb3Sy2n1qPXOxc2mFBqW9Hg0dRigxl2F3nW"
 }
 
