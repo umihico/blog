@@ -135,15 +135,19 @@ output "temp" {
     instance : aws_instance.temp
   }
 }
+
 ```
 
 applyするときのスクリプト
 
 ```bash
 #!/bin/bash
+set -euoxv pipefail
 
-export TF_VAR_vpc_id=
-export TF_VAR_subnet_id=
+OUTPUT=$(aws ec2 describe-subnets --filters "Name=tag:Name,Values=hoge-vpc-private-ap-northeast-1a")
+
+export TF_VAR_vpc_id=$(echo $OUTPUT | jq -r ".Subnets[0].VpcId")
+export TF_VAR_subnet_id=$(echo $OUTPUT | jq -r ".Subnets[0].SubnetId")
 export TF_VAR_security_group_id=
 export TF_VAR_my_ip=$(curl -s http://checkip.amazonaws.com)
 
