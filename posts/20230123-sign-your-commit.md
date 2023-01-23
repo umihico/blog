@@ -33,9 +33,9 @@ brew upgrade git # 主にMacの場合
 
 ## 4. バージョン上げが反映されなかったら
 
-`brew upgrade git`しても`git --version`するとバージョンが変わらなかった。しかしもう一度`brew upgrade git`しても、`Warning: git 2.39.1 already installed`と警告がでるだけに。調べてみると、なぜかダウンロードするディレクトリが変わっていた以下のようにして解決した
+`brew upgrade git`しても`git --version`するとバージョンが変わらなかった。しかしもう一度`brew upgrade git`しても、`Warning: git 2.39.1 already installed`と警告がでるだけに。調べてみると、なぜか複数のパスにgitのバイナリがあるようで、以下のようにして解決した
 
-```
+```bash
 git --version # git version 2.29.2
 which git # /usr/local/bin/git
 /usr/bin/git --version # git version 2.37.1 (Apple Git-137.1)
