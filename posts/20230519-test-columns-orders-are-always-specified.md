@@ -6,6 +6,8 @@ tags: "Rails,Rspec"
 
 いつうっかりカラム追加時に場所を指定せず、timestapmsの後ろにカラムが追加されてしまって見栄えが悪くなってしまうので、updated_atが一番後ろにないとコケるテストを作成してみました。
 
+rubocopにこういうルールあってほしいのだけど、見た感じなさそう
+
 ## 作ったテストはこちら
 
 rails/spec/migration_spec.rb
