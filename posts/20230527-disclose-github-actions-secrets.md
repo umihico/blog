@@ -2,9 +2,9 @@
 tags: "Github Actions"
 ---
 
-# Github Actionsに登録したマスキングされた値を明らかにする
+# Github Actionsのログでマスキングされたsecretsを明らかにする
 
-ログではマスキングされ、Settingsページで見てもヒントも一切ないGithub Actions。
+ログではマスキングされ、Settingsページで見てもヒントも一切ないGithub Actionsのsecrets。
 
 ログのマスキングはシンプルな文字列一致でみていると思い、base64エンコードしたら当然表示されたので、その後decodeすることで無事取得できました。
 
