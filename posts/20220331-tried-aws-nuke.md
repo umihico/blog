@@ -36,15 +36,24 @@ accounts:
       - "nuke"
       IAMUserPolicyAttachment:
       - "nuke -> AdministratorAccess"
+      IAMUserAccessKey:
+      - "nuke -> AKIAIOSFODNN7EXAMPLE"
 EOF
 ```
 
 最初は削除したくない`OrganizationAccountAccessRole`が適切に除外されているか確認したかったが、削除対象が多すぎて見ることができなかった。以下の設定をconfig.ymlに足して削除対象をIAMロールだけにフィルターしてdry-runして確認できた。
 
 ```yml
+accounts:
+  $THIS_ACCOUNT_ID: {}
+
 resource-types:
-  targets:
-    - IAMRole
+  excludes:
+  - IAMUser
+  - IAMUserAccessKey
+  - IAMUserPolicyAttachment
+  - IAMRolePolicyAttachment
+  - IAMRole
 ```
 
 また実行の際に、`nuke`という実行用のIAMユーザーを作ってAdministratorAccess権限を与えて削除対象から除外してある。意図としては親アカウントからAssume Roleしてaws-nukeする場合だと、うっかりオペミスでAssume Roleせずに親アカウントを消すリスクがないか心配になったため

@@ -1,0 +1,20 @@
+#!/bin/bash
+set -euo pipefail
+
+cd $PROJECT_ROOT
+
+case ${1} in
+( mount-bundles )
+docker-compose run --rm npm npm install
+;;
+( dev )
+docker-compose up
+;;
+( front )
+open -a 'Google Chrome' "http://localhost:${LOCALHOST_NEXTJS_PORT}"
+;;
+( * )
+echo "Command not found: ${1}"
+;;
+esac
+
