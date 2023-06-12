@@ -56,8 +56,6 @@ resource "aws_iam_role" "blog" {
         Effect = "Allow"
         Principal = {
           "AWS" = [
-            "arn:aws:iam::${var.blog_account_id}:role/dev-codebuild-service-role",
-            "arn:aws:iam::${var.blog_account_id}:role/prod-codebuild-service-role",
             "arn:aws:iam::${var.blog_account_id}:role/OrganizationAccountAccessRole",
           ]
         },
