@@ -30,7 +30,17 @@ jobs:
       NEXT_PUBLIC_GTM_ID: ${{ secrets.NEXT_PUBLIC_GTM_ID }}
     steps:
       - uses: actions/checkout@v3
+      - name: cache node_modules
+        id: node_modules_cache_id
+        uses: actions/cache@v3
+        env:
+          cache-name: release
+        with:
+          path: |
+            next/node_modules
+          key: package-lock-${{ env.cache-name }}-${{ hashFiles('next/package-lock.json') }}
       - working-directory: ./next
+        if: ${{ steps.node_modules_cache_id.outputs.cache-hit != 'true' }}
         run: npm install
       - name: Fetch AWS credentials
         if: ${{ !env.ACT }}
