@@ -30,14 +30,26 @@ jobs:
       NEXT_PUBLIC_GTM_ID: ${{ secrets.NEXT_PUBLIC_GTM_ID }}
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - name: cache node_modules
+        id: node_modules_cache_id
+        uses: actions/cache@v3
+        env:
+          cache-name: release
+        with:
+          path: |
+            next/node_modules
+          key: package-lock-${{ env.cache-name }}-${{ hashFiles('next/package-lock.json') }}
       - working-directory: ./next
+        if: ${{ steps.node_modules_cache_id.outputs.cache-hit != 'true' }}
         run: npm install
       - name: Fetch AWS credentials
         if: ${{ !env.ACT }}
         uses: ./.github/actions/open-id-connect
-      - name: Release
+      - name: Export
         working-directory: ./next
         run: |
           npm run export
-          aws s3 sync out s3://${{ env.ASSETS_BUCKET }} --delete
+      - name: Upload
+        working-directory: ./next
+        run: |
+          aws s3 sync --size-only out s3://${{ env.ASSETS_BUCKET }} --delete
