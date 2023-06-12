@@ -30,7 +30,6 @@ jobs:
       NEXT_PUBLIC_GTM_ID: ${{ secrets.NEXT_PUBLIC_GTM_ID }}
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
       - working-directory: ./next
         run: npm install
       - name: Fetch AWS credentials
