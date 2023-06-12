@@ -3,7 +3,6 @@
 ## How to start
 
 1. Modify environment variables in `buildspec.yml`
-1. Connect CodeBuild with Github (from blank project creation)
 1. Create hosted zone in parent account.
 1. From parent account, `terraform -chdir=terraform/environments/parent apply -var="prod_domain=umihi.co" -var="dev_domain=dev-blog.umihi.co" -var="blog_account_id=$BLOG_ACCOUNT_ID"`
 1. `terragrunt run-all apply`
@@ -28,7 +27,6 @@ docker-compose -f docker-compose.yml -f docker-compose.static.yml up
 ```bash
 env | grep \
 -e AWS_DEFAULT_REGION \
--e SOURCE_LOCATION \
 -e PROD_DOMAIN \
 -e DEV_DOMAIN \
 -e BLOG_ACCOUNT_ID \
@@ -43,8 +41,6 @@ gh secret set -f .env.secrets
 ```
 
 ### Terraformの運用について
-
-Codebuildで実行しているが、`PowerUserAccess`なのでIAM系をいじる場合は手動で
 
 ```bash
 # 手動実行時の手順書

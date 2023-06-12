@@ -48,6 +48,5 @@ inputs = {
     github_repository_owner_name = get_env("GITHUB_REPOSITORY_OWNER_NAME")
     github_repository_name       = get_env("GITHUB_REPOSITORY_NAME")
     master_account_id            = local.organization["MasterAccountId"]
-    source_location              = get_env("SOURCE_LOCATION")
   }
 }
