@@ -45,8 +45,11 @@ jobs:
       - name: Fetch AWS credentials
         if: ${{ !env.ACT }}
         uses: ./.github/actions/open-id-connect
-      - name: Release
+      - name: Export
         working-directory: ./next
         run: |
           npm run export
+      - name: Upload
+        working-directory: ./next
+        run: |
           aws s3 sync --size-only out s3://${{ env.ASSETS_BUCKET }} --delete
