@@ -1,5 +1,6 @@
 output "all" {
   value = {
+    iam        = module.iam.all
     s3         = module.s3.all
     route53    = module.route53.all
     acm        = module.acm.all

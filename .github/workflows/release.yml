@@ -20,7 +20,7 @@ jobs:
       AWS_ACCOUNT_ID: ${{ secrets.BLOG_ACCOUNT_ID }}
       AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
       AWS_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
-      GH_ACTIONS_ROLE: ${{ secrets.GH_ACTIONS_ROLE }}
+      GH_ACTIONS_ROLE: ${{ (github.ref_name == 'main' && secrets.PROD_GH_ACTIONS_ROLE) || secrets.DEV_GH_ACTIONS_ROLE }}
       NEXT_PUBLIC_HOST_NAME: ${{ secrets.NEXT_PUBLIC_HOST_NAME }}
       DOMAIN: ${{ (github.ref_name == 'main' && secrets.PROD_DOMAIN) || secrets.DEV_DOMAIN }}
       ASSETS_BUCKET: ${{ (github.ref_name == 'main' && secrets.PROD_ASSETS_BUCKET) || secrets.DEV_ASSETS_BUCKET }}

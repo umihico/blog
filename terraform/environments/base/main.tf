@@ -8,6 +8,7 @@ terraform {
 }
 
 locals {
+  iam        = { iam = module.iam.all }
   s3         = { s3 = module.s3.all }
   route53    = { route53 = module.route53.all }
   acm        = { acm = module.acm.all }
@@ -40,6 +41,11 @@ module "acm_usa" {
     aws        = aws.us-east-1,
     aws.parent = aws.parent,
   }
+}
+
+module "iam" {
+  source = "../../modules/iam"
+  vars   = var.vars
 }
 
 module "s3" {
