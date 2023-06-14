@@ -1,7 +1,7 @@
 version: "3"
 services:
   npm:
-    image: node:20.3
+    image: node:18.16
     working_dir: /usr/src/app
     volumes:
       - ./next:/usr/src/app
