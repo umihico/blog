@@ -11,7 +11,7 @@ concurrency:
 
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04 # 22.04 has Node.js 18.16.0
     env:
       # AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AWS_SESSION_TOKENはactでローカル実行時に渡される、CIはOpen ID Connectなので不要
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -20,9 +20,8 @@ jobs:
       AWS_ACCOUNT_ID: ${{ secrets.BLOG_ACCOUNT_ID }}
       AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
       AWS_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
-      GH_ACTIONS_ROLE: ${{ secrets.GH_ACTIONS_ROLE }}
+      GH_ACTIONS_ROLE: ${{ (github.ref_name == 'main' && secrets.PROD_GH_ACTIONS_ROLE) || secrets.DEV_GH_ACTIONS_ROLE }}
       NEXT_PUBLIC_HOST_NAME: ${{ secrets.NEXT_PUBLIC_HOST_NAME }}
-      SOURCE_LOCATION: ${{ secrets.SOURCE_LOCATION }}
       DOMAIN: ${{ (github.ref_name == 'main' && secrets.PROD_DOMAIN) || secrets.DEV_DOMAIN }}
       ASSETS_BUCKET: ${{ (github.ref_name == 'main' && secrets.PROD_ASSETS_BUCKET) || secrets.DEV_ASSETS_BUCKET }}
       NEXT_PUBLIC_GITHUB_URL: ${{ secrets.NEXT_PUBLIC_GITHUB_URL }}
@@ -31,14 +30,26 @@ jobs:
       NEXT_PUBLIC_GTM_ID: ${{ secrets.NEXT_PUBLIC_GTM_ID }}
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - name: cache node_modules
+        id: node_modules_cache_id
+        uses: actions/cache@v3
+        env:
+          cache-name: release
+        with:
+          path: |
+            next/node_modules
+          key: package-lock-${{ env.cache-name }}-${{ hashFiles('next/package-lock.json') }}
       - working-directory: ./next
+        if: ${{ steps.node_modules_cache_id.outputs.cache-hit != 'true' }}
         run: npm install
       - name: Fetch AWS credentials
         if: ${{ !env.ACT }}
         uses: ./.github/actions/open-id-connect
-      - name: Release
+      - name: Export
         working-directory: ./next
         run: |
           npm run export
-          aws s3 sync out s3://${{ env.ASSETS_BUCKET }} --delete
+      - name: Upload
+        working-directory: ./next
+        run: |
+          aws s3 sync --size-only out s3://${{ env.ASSETS_BUCKET }} --delete

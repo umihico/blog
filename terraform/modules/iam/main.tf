@@ -1,36 +1,44 @@
-data "aws_caller_identity" "self" {}
 
-resource "aws_iam_role" "codebuild" {
-  name                = "${var.vars.prefix}-codebuild-service-role"
-  managed_policy_arns = ["arn:aws:iam::aws:policy/PowerUserAccess"]
-  inline_policy {
-    name = "assume-role-to-parent"
-    policy = jsonencode({
-      "Version" : "2012-10-17",
-      "Statement" : [{
-        "Effect" : "Allow",
-        "Action" : [
-          "iam:GetRole",
-          "iam:PassRole"
-        ],
-        "Resource" : "arn:aws:iam::${var.vars.master_account_id}:role/role-assumed-by-blog"
-        }, {
-        "Effect" : "Allow",
-        "Action" : ["iam:Get*", "iam:List*"],
-        "Resource" : "arn:aws:iam::${data.aws_caller_identity.self.account_id}:role/${var.vars.prefix}-codebuild-service-role" # to refresh terraform state
-      }]
-    })
-  }
+# 環境ごと（dev,prod）に作れず、共通のものしか作れないため、aws cliで作成して、data sourceで取得する
+
+# オリジナル
+# resource "aws_iam_openid_connect_provider" "github_actions" {
+#   url             = "https://token.actions.githubusercontent.com"
+#   client_id_list  = ["sts.amazonaws.com"]
+#   thumbprint_list = ["6938fd4d98bab03faadb97b34396831e3780aea1"]
+# }
+
+# コマンド
+# https://aws.amazon.com/jp/blogs/security/use-iam-roles-to-connect-github-actions-to-actions-in-aws/
+#
+# aws iam create-open-id-connect-provider \
+#     --url "https://token.actions.githubusercontent.com" \
+#     --thumbprint-list "6938fd4d98bab03faadb97b34396831e3780aea1" \
+#     --client-id-list "sts.amazonaws.com"
+
+# データソース
+data "aws_iam_openid_connect_provider" "github_actions" {
+  url = "https://token.actions.githubusercontent.com"
+}
+
+resource "aws_iam_role" "github_actions" {
+  name = "${var.vars.prefix}-github-actions"
   assume_role_policy = jsonencode({
-    "Version" : "2012-10-17",
-    "Statement" : [
-      {
-        "Effect" : "Allow",
-        "Principal" : {
-          "Service" : "codebuild.amazonaws.com"
-        },
-        "Action" : "sts:AssumeRole"
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = "sts:AssumeRoleWithWebIdentity"
+      Principal = {
+        Federated = data.aws_iam_openid_connect_provider.github_actions.arn
       }
-    ]
+      Condition = {
+        StringLike = {
+          "token.actions.githubusercontent.com:sub" = [
+            "repo:${var.vars.github_repository_owner_name}/${var.vars.github_repository_name}:*"
+          ]
+        }
+      }
+    }]
   })
+  managed_policy_arns = ["arn:aws:iam::aws:policy/AmazonS3FullAccess"]
 }
