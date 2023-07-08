@@ -1,0 +1,31 @@
+name: rebase and auto-merge
+
+on:
+  pull_request_review:
+    types: [submitted]
+
+jobs:
+  merger:
+    runs-on: ubuntu-latest
+    permissions: write-all
+    if: github.event.pull_request.draft == false && github.event.review.state == 'approved'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # マージするために必要 https://github.com/actions/checkout/issues/125#issuecomment-570254411
+          token: ${{ secrets.UMIHICO_BOT__APPROVER }}
+      - name: automatic rebase
+        # https://www.jessesquires.com/blog/2021/10/17/github-actions-workflows-for-automatic-rebasing-and-merging/
+        if: github.event.pull_request.base.ref == 'development'
+        continue-on-error: true
+        uses: cirrus-actions/rebase@1.8
+        env:
+          GITHUB_TOKEN: ${{ secrets.UMIHICO_BOT__APPROVER }}
+      - name: Enable auto merge
+        run: gh pr merge --auto --merge "$PR_URL" -t "$PR_TITLE" -b "$PR_BODY"
+        env:
+          GH_TOKEN: ${{ secrets.UMIHICO_BOT__APPROVER }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
