@@ -13,6 +13,15 @@ docker-compose up
 ( front )
 open -a 'Google Chrome' "http://localhost:${LOCALHOST_NEXTJS_PORT}"
 ;;
+( new )
+git add -A
+git commit -m "temp" || true
+git checkout development
+git pull
+git checkout -b new-post-$(date +%Y%m%d%H%M%S)
+code .
+code ./posts/$(date +%Y%m%d)-${2}.md
+;;
 ( * )
 echo "Command not found: ${1}"
 ;;
