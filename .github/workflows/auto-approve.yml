@@ -1,0 +1,18 @@
+name: Auto approve pull request
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+
+jobs:
+  auto-approve:
+    if: ${{ github.event.pull_request.user.login == 'umihico' && !startsWith(github.head_ref, 'manual-approve') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.UMIHICO_BOT__APPROVER }}
+      - run: gh pr review ${{ github.event.pull_request.number }} --approve
+        env:
+          GITHUB_TOKEN: ${{ secrets.UMIHICO_BOT__APPROVER }}

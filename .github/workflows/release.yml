@@ -1,6 +1,9 @@
 name: Release
 
-on: [push]
+on:
+  push:
+    branches-ignore:
+      - development
 
 permissions:
   id-token: write # https://github.com/aws-actions/configure-aws-credentials/issues/271#issuecomment-931012696
