@@ -1,0 +1,112 @@
+---
+tags: "Notion,Github Actions"
+---
+
+# GithubのIssueでNotionのページを作って更新する
+
+GithubのIssueの発行時に作成して、クローズ時にプロパティを変更するようにしました。
+
+デフォルトブランチへのPRマージでIssueをクローズできるので、Issueベース、PRベースでNotionを更新できます。
+
+一番粒度の小さいタスクをこのようにIssueで管理して、それらをNotion上のEpicなどでグルーピングして、エンジニア以外でも分かる粒度の進捗管理にあてれば手間や更新漏れのない管理ができると思いました。
+
+また、検索に引っかけるためにIssue URLをプロパティに追加してますが、このおかげで完了したNotionページ見た時に起きる「このPRどれだっけ」問題がなくなりました。
+
+## Issue作成時（Notionページ作成）
+
+```yml
+name: Issue kanban page in Notion by Github issue creation.
+
+on:
+  issues:
+    types: ['opened', 'reopened']
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Issue notion kanban page
+        env:
+          NOTION_API_SECRET: ${{ secrets.NOTION_API_SECRET }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          # ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+            jq -c -n \
+              --arg NOTION_DATABASE_ID $NOTION_DATABASE_ID \
+              --arg ISSUE_URL $ISSUE_URL \
+              --arg ISSUE_TITLE $ISSUE_TITLE \
+            '{
+              "parent": {
+                "database_id": $NOTION_DATABASE_ID
+              },
+              "properties": {
+                "Github Issue URL": {
+                  "url": $ISSUE_URL
+                },
+                "Name": {
+                  "title": [
+                    {
+                      "text": {
+                        "content": $ISSUE_TITLE
+                      }
+                    }
+                  ]
+                }
+              }
+            }' | curl -X POST https://api.notion.com/v1/pages \
+              -H "Authorization: Bearer ${NOTION_API_SECRET}" \
+              -H "Content-Type: application/json" \
+              -H "Notion-Version: 2021-05-13" \
+              -d@-
+```
+
+## Issueクローズ時（Notionページ作成）
+
+```yml
+name: Complete kanban page in Notion by Github issue close.
+
+on:
+  issues:
+    types: ['deleted', 'closed']
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Complete notion kanban page
+        env:
+          NOTION_API_SECRET: ${{ secrets.NOTION_API_SECRET }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
+        run: |
+            PAGE_ID=$(jq -c -n \
+              --arg NOTION_DATABASE_ID $NOTION_DATABASE_ID \
+              --arg ISSUE_URL $ISSUE_URL \
+            '{
+              "filter": {
+                "property": "Github Issue URL",
+                "url": {
+                  "equals": $ISSUE_URL
+                }
+              }
+            }' | curl -X POST https://api.notion.com/v1/databases/${NOTION_DATABASE_ID}/query \
+              -H "Authorization: Bearer ${NOTION_API_SECRET}" \
+              -H "Content-Type: application/json" \
+              -H "Notion-Version: 2021-05-13" \
+              -d@- | jq -r '.results[0].id')
+            jq -c -n '{
+              "properties": {
+                "Status": {
+                  "select": {
+                    "name": "Completed"
+                  }
+                }
+              }
+            }' | curl -X PATCH https://api.notion.com/v1/pages/${PAGE_ID} \
+              -H "Authorization: Bearer ${NOTION_API_SECRET}" \
+              -H "Content-Type: application/json" \
+              -H "Notion-Version: 2021-05-13" \
+              -d@-
+```

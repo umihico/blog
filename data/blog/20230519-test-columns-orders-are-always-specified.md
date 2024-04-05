@@ -1,0 +1,33 @@
+---
+tags: "Rails,Rspec"
+---
+
+# カラム追加時にupdated_atの後ろに来ないように、常に場所を指定させるrspec
+
+いつうっかりカラム追加時に場所を指定せず、timestapmsの後ろにカラムが追加されてしまって見栄えが悪くなってしまうので、updated_atが一番後ろにないとコケるテストを作成してみました。
+
+rubocopにこういうルールあってほしいのだけど、見た感じなさそう
+
+## 作ったテストはこちら
+
+rails/spec/migration_spec.rb
+
+```ruby
+require "rails_helper"
+
+RSpec.describe "DBのカラム順序が指定されてるかチェック", type: :helper do
+  let(:sql) do
+    "SELECT a.TABLE_NAME, a.COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS " \
+      "as a LEFT JOIN INFORMATION_SCHEMA.COLUMNS as b " \
+      "ON a.TABLE_SCHEMA=b.TABLE_SCHEMA and a.TABLE_NAME=b.TABLE_NAME and a.ORDINAL_POSITION < b.ORDINAL_POSITION " \
+      'WHERE a.TABLE_SCHEMA in ("development", "test") and b.ORDINAL_POSITION is NULL ' \
+      'and a.COLUMN_NAME != "updated_at" and a.TABLE_NAME != "schema_migrations";'
+  end
+  let(:sql_result) { ActiveRecord::Base.connection.execute(sql) }
+  let(:invalid_columns) { sql_result.map { |row| row.join(".") } }
+
+  it "テーブルの最後のカラムがupdated_atか否か。新たにカラムを追加する際にはポジションを必ず指定してください。" do
+    expect(invalid_columns).to eq []
+  end
+end
+```
