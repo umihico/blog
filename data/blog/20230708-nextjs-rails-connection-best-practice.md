@@ -1,6 +1,7 @@
 ---
 tags: "Rails,Next.js"
 date: '2023-07-08'
+title: 'ワタシ的Next.js、Rails間のAPI通信ベストプラクティス'
 ---
 
 # ワタシ的Next.js、Rails間のAPI通信ベストプラクティス

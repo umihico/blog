@@ -1,6 +1,7 @@
 ---
 tags: "git"
 date: '2022-12-17'
+title: '全ディレクトリのgit originを抽出する'
 ---
 
 # 全ディレクトリのgit originを抽出する

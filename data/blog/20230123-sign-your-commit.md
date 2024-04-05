@@ -1,6 +1,7 @@
 ---
 tags: "Git"
 date: '2023-01-23'
+title: 'Githubにてコミットをverifiedでカッコつけるのが簡単になってた件'
 ---
 
 # Githubにてコミットをverifiedでカッコつけるのが簡単になってた件

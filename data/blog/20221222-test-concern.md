@@ -1,6 +1,7 @@
 ---
 tags: "Ruby on Rails"
 date: '2022-12-22'
+title: 'ControllerにincludeしてるConcernを単体テストする'
 ---
 
 # ControllerにincludeしてるConcernを単体テストする

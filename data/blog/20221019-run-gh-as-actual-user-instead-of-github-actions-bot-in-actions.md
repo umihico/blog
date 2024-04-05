@@ -1,6 +1,7 @@
 ---
 tags: "Github Actions"
 date: '2022-10-19'
+title: 'botにpushされてもGithub Actionsが動かない件'
 ---
 
 # botにpushされてもGithub Actionsが動かない件

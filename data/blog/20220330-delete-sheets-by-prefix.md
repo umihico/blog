@@ -2,6 +2,7 @@
 tags: "Google App Script"
 excerpt: '某サイトからCSVのインポートをよく行うのですが、インポートしたデータを使った後に毎度足したシートが増えており、消すのも大変なのでスクリプトを書きました。'
 date: '2022-03-30'
+title: 'シート名の先頭が一致する全シートを削除する（Google Spreadsheet）'
 ---
 
 # シート名の先頭が一致する全シートを削除する（Google Spreadsheet）

@@ -4,6 +4,7 @@ excerpt: 'aws-nukeで削除可能なリソースを調べたら、タスク定�
 references:
   - "https://stackoverflow.com/questions/35045264/how-do-you-delete-an-aws-ecs-task-definition/66079759"
 date: '2022-03-31'
+title: 'AWSアカウント内のECSタスク定義を全て除去するワンライナー'
 ---
 
 # AWSアカウント内のECSタスク定義を全て除去するワンライナー

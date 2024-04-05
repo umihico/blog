@@ -4,6 +4,7 @@ references:
   - "https://hacknote.jp/archives/13756/"
   - "https://github.com/rebuy-de/aws-nuke"
 date: '2022-03-31'
+title: 'aws-nukeを触ってみた'
 ---
 
 # aws-nukeを触ってみた

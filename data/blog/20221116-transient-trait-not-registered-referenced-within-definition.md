@@ -1,6 +1,7 @@
 ---
 tags: "Rails,Rspec"
 date: '2022-11-16'
+title: 'transient使おうとしてTrait not registered referenced within definition'
 ---
 
 # transient使おうとしてTrait not registered referenced within definition

@@ -4,6 +4,7 @@ excerpt: "fixupしたコミットを上から数えて10なら`git rebase -i --a
 references:
   - "https://qiita.com/inukai-masanori/items/82eb0626fd75f3eb0922"
 date: '2022-04-15'
+title: 'fixup,rebaseコマンドの自動化'
 ---
 
 # fixup,rebaseコマンドの自動化
