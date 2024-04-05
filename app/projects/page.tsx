@@ -1,10 +1,12 @@
 import projectsData from '@/data/projectsData'
 import Card from '@/components/Card'
 import { genPageMetadata } from 'app/seo'
+import { notFound } from 'next/navigation'
 
 export const metadata = genPageMetadata({ title: 'Projects' })
 
 export default function Projects() {
+  return notFound()
   return (
     <>
       <div className="divide-y divide-gray-200 dark:divide-gray-700">
