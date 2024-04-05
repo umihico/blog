@@ -1,5 +1,5 @@
 ---
-tags: "AWS"
+tags: ['AWS']
 date: '2022-04-18'
 title: 'prefixの一致するサブネットIDをカンマ区切りで取り出すワンライナー'
 summary: 'CircleCIのECSのOrbsに使いたかったが、そもそもCommandにしろJobにしろ引数は環境変数など静的にセットするか、circleci/continuationを使わないとダメそう'

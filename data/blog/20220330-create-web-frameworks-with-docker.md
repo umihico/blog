@@ -1,5 +1,5 @@
 ---
-tags: "Docker,Next.js,Ruby on Rails"
+tags: ['Docker', 'Next.js', 'Ruby on Rails']
 date: '2022-03-30'
 title: 'WEBフレームワークをDockerで作るワンライナー'
 summary: 'Next.jsとRuby on RailsのプロジェクトをDockerを通じて環境依存せず指定した言語バージョンで構築する'

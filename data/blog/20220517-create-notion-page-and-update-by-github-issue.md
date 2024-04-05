@@ -1,5 +1,5 @@
 ---
-tags: "Notion,Github Actions"
+tags: ['Notion', 'Github Actions']
 date: '2022-05-17'
 title: 'GithubのIssueでNotionのページを作って更新する'
 summary: 'GithubのIssueの発行時に作成して、クローズ時にプロパティを変更するようにしました。  デフォルトブランチへのPRマージでIssueをクローズできるので、Issueベース、PRベースでNotionを更新できます。  一番粒度の小さいタスクをこのようにIssueで管理して、それらをNotion上のEpicなどでグルーピングして、エンジニア以外でも分かる粒度の進捗管理にあてれば手間や更新漏れのない管理ができると思いました。  また、検索に引っかけるためにIssue URLをプロパティに追加してますが、このおかげで完了したNotionページ見た時に起きる「このPRどれだっけ」問題がなくなりました。'

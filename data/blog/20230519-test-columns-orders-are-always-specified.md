@@ -1,5 +1,5 @@
 ---
-tags: "Rails,Rspec"
+tags: ['Rails', 'Rspec']
 date: '2023-05-19'
 title: 'カラム追加時にupdated_atの後ろに来ないように、常に場所を指定させるrspec'
 summary: 'いつうっかりカラム追加時に場所を指定せず、timestapmsの後ろにカラムが追加されてしまって見栄えが悪くなってしまうので、updated_atが一番後ろにないとコケるテストを作成してみました。  rubocopにこういうルールあってほしいのだけど、見た感じなさそう'

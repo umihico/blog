@@ -1,5 +1,5 @@
 ---
-tags: "Git"
+tags: ['Git']
 excerpt: "fixupしたコミットを上から数えて10なら`git rebase -i --autosquash HEAD~10`とかやってましたが、rebaseもまとめてやるコマンド作った話"
 references:
   - "https://qiita.com/inukai-masanori/items/82eb0626fd75f3eb0922"

@@ -1,5 +1,5 @@
 ---
-tags: "Notion"
+tags: ['Notion']
 date: '2022-05-12'
 title: 'NotionのFormula使ってパスからフルURL生成'
 summary: '整数のGithub Issue NoからIssue URLを生成したかった'

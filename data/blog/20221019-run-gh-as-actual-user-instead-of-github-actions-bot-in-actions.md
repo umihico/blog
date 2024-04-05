@@ -1,5 +1,5 @@
 ---
-tags: "Github Actions"
+tags: ['Github Actions']
 date: '2022-10-19'
 title: 'botにpushされてもGithub Actionsが動かない件'
 summary: '端的に言うとGithub Actionsでは、Action中にpushするパターンは無限ループが発生するリスクがあるので、実行者がボットgithub-actions[bot]の場合に限り、merge/pushした際には、その先のブランチで走るべきCIをキックしない仕様があり、対策が必要です。'

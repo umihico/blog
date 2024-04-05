@@ -1,5 +1,5 @@
 ---
-tags: "Mac,Docker"
+tags: ['Mac', 'Docker']
 references:
   - "https://support.apple.com/ja-jp/HT206996"
   - "https://qiita.com/ktsujichan/items/726e0f896e30b355fee1"

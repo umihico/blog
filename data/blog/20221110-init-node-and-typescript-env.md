@@ -1,5 +1,5 @@
 ---
-tags: "Node,TypeScript"
+tags: ['Node', 'TypeScript']
 date: '2022-11-10'
 title: 'Node,TypeScript環境の構築メモ'
 summary: 'curlとjqでゴニョゴニョやるのが辛くなってきたり、API以外にもライブラリで提供されている場合に速やかに叩けるようにメモ。ライブラリで型ついてると、Github Copilotも最大限活きるので、とても高速に開発できました。'

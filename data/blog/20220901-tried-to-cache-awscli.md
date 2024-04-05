@@ -1,5 +1,5 @@
 ---
-tags: "CircleCI,AWS"
+tags: ['CircleCI', 'AWS']
 date: '2022-09-01'
 title: 'AWSCLIのインストールにキャッシュを使ってみたけど大して減らなかった話'
 summary: 'ジョブ毎に[https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip](https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip)からダウンロードしてるのでこれをCircleCIのキャッシュを入れてみましたが、もともと３秒の処理時間は全く改善しなかった話'

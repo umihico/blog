@@ -1,5 +1,5 @@
 ---
-tags: "CircleCI"
+tags: ['CircleCI']
 references:
   - "https://circleci.com/developer/orbs/orb/circleci/path-filtering"
   - "https://blog.adachin.me/archives/48488"

@@ -1,5 +1,5 @@
 ---
-tags: "Alfred"
+tags: ['Alfred']
 references:
   - "https://www.alfredforum.com/topic/14793-solved-insert-todays-date-shortcut/"
   - "https://www.alfredforum.com/topic/5289-adding-today%E2%80%99s-date/"

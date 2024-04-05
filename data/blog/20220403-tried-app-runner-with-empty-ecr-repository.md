@@ -1,5 +1,5 @@
 ---
-tags: "AWS,AWS App Runner,Terraform"
+tags: ['AWS', 'AWS App Runner', 'Terraform']
 date: '2022-04-03'
 title: 'Terraformで空のECRレポジトリを参照するApp Runnerをapplyしたくて辛かった話'
 summary: '別の新規プロジェクトに既存のTerraform資産を流用した時に、App RunnerとECRを一発で同時デプロイすることになりましたが、そうなると当然ECRのレポジトリは空なので失敗するわけで、次回スムーズに流用できる方法がないか試行錯誤しました'
