@@ -5,6 +5,7 @@ references:
   - "https://qiita.com/shifumin/items/f4f4ea68d9963dbe9ca2"
 date: '2022-04-07'
 title: 'AWS LambdaでRailsのマイグレーションを秒殺する基盤を作った'
+summary: 'LambdaでRailsを動かしてマイグレーションすれば、コストもかからず、かつ秒で終わるので高速だった。高速化したい・CIにマイグレーション乗せたい・ECS使いたくない・RDSがプライベートサブネットにあって常時起動してる踏み台がないパターン向け'
 ---
 
 # AWS LambdaでRailsのマイグレーションを秒殺する基盤を作った

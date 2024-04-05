@@ -2,6 +2,7 @@
 tags: "Github Actions"
 date: '2023-05-27'
 title: 'Github Actionsのログでマスキングされたsecretsを明らかにする'
+summary: 'ログではマスキングされ、Settingsページで見てもヒントも一切ないGithub Actionsのsecrets。  ログのマスキングはシンプルな文字列一致でみていると思い、base64エンコードしたら当然表示されたので、その後decodeすることで無事取得できました。  スニペットとして残しておきます。'
 ---
 
 # Github Actionsのログでマスキングされたsecretsを明らかにする

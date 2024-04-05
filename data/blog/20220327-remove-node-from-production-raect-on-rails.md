@@ -2,6 +2,7 @@
 tags: "Docker,React,Ruby on Rails,CircleCI"
 date: '2022-03-27'
 title: 'React on Railsで本番イメージをNodeレスにした'
+summary: 'Nextとしてサーバーを建てるのではなく、RailsのViewからscriptタグでJS配信するだけなら、本番イメージ内にインストールする必要ないのでは？と思ったらできた話'
 ---
 
 # React on Railsで本番イメージをNodeレスにした

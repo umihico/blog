@@ -6,6 +6,7 @@ references:
   - "https://zenn.dev/korosuke613/scraps/74e6ccaf6f8b67"
 date: '2022-07-24'
 title: 'circleci/path-filteringの欠点'
+summary: 'モノレポ運用をしてるPJにて、導入寸前まで思案したcircleci/path-filteringというorbsですが、導入を諦めた懸念点をメモします'
 ---
 # circleci/path-filteringの欠点
 

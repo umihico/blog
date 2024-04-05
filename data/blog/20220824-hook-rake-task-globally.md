@@ -2,6 +2,7 @@
 tags: "Ruby on Rails"
 date: '2022-08-24'
 title: '全Rakeタスクにグローバルにhookをつける'
+summary: '調べてみると`Rake::Task.tasks.each`で全タスクにenhanceする例が多く見つかったが、そうなると:environmentなど継承先のタスクにも付与されるからか、なぜか私の環境では実行したいタスクより先に実行されてしまった。 これを防ぎ正しく後から実行するには`Rake::Task[Rake.application.top_level_tasks[0]]`と指定する必要があった'
 ---
 
 # 全Rakeタスクにグローバルにhookをつける

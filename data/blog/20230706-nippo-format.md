@@ -2,6 +2,7 @@
 tags: "gh"
 date: '2023-07-06'
 title: '日報用のスクリプトを公開してみる'
+summary: '今日作ったプルリクと、今日レビューしたプルリクをリストしてくれます。  https://gist.github.com/umihico/4b131c0a9a521df40abcde701c90cc67'
 ---
 
 # 日報用のスクリプトを公開してみる

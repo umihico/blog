@@ -2,6 +2,7 @@
 tags: "Rails,Rspec"
 date: '2022-11-16'
 title: 'transient使おうとしてTrait not registered referenced within definition'
+summary: '見ている情報が古かったのか、ずっと誤った書き方をして以下のエラーと格闘していました KeyError: Trait not registered: "title" referenced within "article" definition'
 ---
 
 # transient使おうとしてTrait not registered referenced within definition

@@ -5,6 +5,7 @@ references:
   - "https://qiita.com/inukai-masanori/items/82eb0626fd75f3eb0922"
 date: '2022-04-15'
 title: 'fixup,rebaseコマンドの自動化'
+summary: 'fixupしたコミットを上から数えて10なら`git rebase -i --autosquash HEAD~10`とかやってましたが、rebaseもまとめてやるコマンド作った話。これから少し捗りそう'
 ---
 
 # fixup,rebaseコマンドの自動化

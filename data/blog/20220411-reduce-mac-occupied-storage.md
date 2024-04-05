@@ -6,6 +6,7 @@ references:
   - "https://docs.docker.com/engine/reference/commandline/system_prune/"
 date: '2022-04-11'
 title: '300GBあった「システムデータ」を削除した話'
+summary: '「このMacについて」→「ストレージ（タブ）」→「管理」から空き容量を作ることができますが、システムデータという編集が不可能な項目で300GB近く専有しており、削除までに調査が必要だった話'
 ---
 
 # 300GBあった「システムデータ」を削除した話

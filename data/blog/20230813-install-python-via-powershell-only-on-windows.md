@@ -2,6 +2,7 @@
 tags: "Windows,Python,PowerShell"
 date: '2023-08-13'
 title: 'WindowsのPowerShellだけを使って、Pythonをインストールするスニペット'
+summary: '引数/passiveにして、デフォで進める(?)ようにするのが肝でした。ドキュメント以外で使ってる人が見つからなかったので記事にしました。'
 ---
 
 # WindowsのPowerShellだけを使って、Pythonをインストールするスニペット

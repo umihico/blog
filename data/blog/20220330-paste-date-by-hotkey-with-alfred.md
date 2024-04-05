@@ -4,6 +4,7 @@ references:
   - "https://www.alfredforum.com/topic/14793-solved-insert-todays-date-shortcut/"
   - "https://www.alfredforum.com/topic/5289-adding-today%E2%80%99s-date/"
 title: 'Alfredで本日の日付を入力するショートカットを作る'
+summary: '議事録、日報などなにかと必要になる本日の日付をショートカットで呼び出す方法を紹介します'
 ---
 
 # Alfredで本日の日付を入力するショートカットを作る

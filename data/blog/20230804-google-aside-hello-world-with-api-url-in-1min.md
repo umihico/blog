@@ -2,6 +2,7 @@
 tags: "Aside"
 date: '2023-08-04'
 title: 'Claspに代わってGoogle Asideで１分でWebアプリを作る'
+summary: '初めてAside使ってみて、WebアプリとしてURLを発行し、中身を更新できるまでの数ステップを紹介します'
 ---
 
 # Claspに代わってGoogle Asideで１分でWebアプリを作る

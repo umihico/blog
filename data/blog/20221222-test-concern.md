@@ -2,6 +2,7 @@
 tags: "Ruby on Rails"
 date: '2022-12-22'
 title: 'ControllerにincludeしてるConcernを単体テストする'
+summary: 'routesとcontrollerをモックすることで、includeしたControllerとしてテストするのではなく単体テストが実現できました。'
 ---
 
 # ControllerにincludeしてるConcernを単体テストする

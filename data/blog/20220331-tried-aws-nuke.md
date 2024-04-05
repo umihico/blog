@@ -5,6 +5,7 @@ references:
   - "https://github.com/rebuy-de/aws-nuke"
 date: '2022-03-31'
 title: 'aws-nukeを触ってみた'
+summary: 'アカウント内のリソースを全削除してくれるライブラリ[aws-nuke](https://github.com/rebuy-de/aws-nuke)を触ってみました'
 ---
 
 # aws-nukeを触ってみた

@@ -2,6 +2,7 @@
 tags: "Docker,ChatGPT"
 date: '2023-08-12'
 title: 'DockerでChatGPTを立ち上げるエイリアスで、月20ドルの課金をケチる'
+summary: 'APIキーで動かせる良いオープンソースのChatGPTのUIがあり、これを使う方が月20ドル課金してchat.openai.comで会話するより安上がりです。 このオープンソースのUIをクイックに起動できるエイリアスを紹介します。'
 ---
 
 # DockerでChatGPTを立ち上げるエイリアスで、月20ドルの課金をケチる
