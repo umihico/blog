@@ -1,5 +1,6 @@
 ---
 tags: "Github Actions"
+date: '2023-05-27'
 ---
 
 # Github Actionsのログでマスキングされたsecretsを明らかにする

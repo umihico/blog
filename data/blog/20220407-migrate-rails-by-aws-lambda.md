@@ -3,6 +3,7 @@ tags: "AWS,AWS Lambda,Ruby on Rails,Terraform"
 excerpt: 'aws-nukeで削除可能なリソースを調べたら、タスク定義が大量に残っていることが分かったたので、以下のコマンドで削除した。'
 references:
   - "https://qiita.com/shifumin/items/f4f4ea68d9963dbe9ca2"
+date: '2022-04-07'
 ---
 
 # AWS LambdaでRailsのマイグレーションを秒殺する基盤を作った

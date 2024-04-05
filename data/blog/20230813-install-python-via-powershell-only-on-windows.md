@@ -1,5 +1,6 @@
 ---
 tags: "Windows,Python,PowerShell"
+date: '2023-08-13'
 ---
 
 # WindowsのPowerShellだけを使って、Pythonをインストールするスニペット

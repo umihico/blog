@@ -1,5 +1,6 @@
 ---
 tags: "Docker,ChatGPT"
+date: '2023-08-12'
 ---
 
 # DockerでChatGPTを立ち上げるエイリアスで、月20ドルの課金をケチる

@@ -1,5 +1,6 @@
 ---
 tags: "Ruby on Rails"
+date: '2022-08-24'
 ---
 
 # 全Rakeタスクにグローバルにhookをつける

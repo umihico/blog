@@ -1,5 +1,6 @@
 ---
 tags: "Docker,Next.js,Ruby on Rails"
+date: '2022-03-30'
 ---
 
 # WEBフレームワークをDockerで作るワンライナー

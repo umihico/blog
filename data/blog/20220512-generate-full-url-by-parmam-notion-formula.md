@@ -1,5 +1,6 @@
 ---
 tags: "Notion"
+date: '2022-05-12'
 ---
 
 # NotionのFormula使ってパスからフルURL生成

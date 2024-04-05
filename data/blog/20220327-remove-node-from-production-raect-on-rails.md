@@ -1,5 +1,6 @@
 ---
 tags: "Docker,React,Ruby on Rails,CircleCI"
+date: '2022-03-27'
 ---
 
 # React on Railsで本番イメージをNodeレスにした

@@ -1,5 +1,6 @@
 ---
 tags: "AWS,AWS App Runner,Terraform"
+date: '2022-04-03'
 ---
 
 # Terraformで空のECRレポジトリを参照するApp Runnerをapplyしたくて辛かった話

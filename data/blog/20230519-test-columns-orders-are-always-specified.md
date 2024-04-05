@@ -1,5 +1,6 @@
 ---
 tags: "Rails,Rspec"
+date: '2023-05-19'
 ---
 
 # カラム追加時にupdated_atの後ろに来ないように、常に場所を指定させるrspec

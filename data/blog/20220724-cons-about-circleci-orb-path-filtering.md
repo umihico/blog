@@ -4,6 +4,7 @@ references:
   - "https://circleci.com/developer/orbs/orb/circleci/path-filtering"
   - "https://blog.adachin.me/archives/48488"
   - "https://zenn.dev/korosuke613/scraps/74e6ccaf6f8b67"
+date: '2022-07-24'
 ---
 # circleci/path-filteringの欠点
 

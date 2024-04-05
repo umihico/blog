@@ -1,5 +1,6 @@
 ---
 tags: "Node,TypeScript"
+date: '2022-11-10'
 ---
 
 # Node,TypeScript環境の構築メモ

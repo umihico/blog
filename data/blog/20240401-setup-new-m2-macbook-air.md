@@ -1,5 +1,6 @@
 ---
 tags: "Macbook"
+date: '2024-04-01'
 ---
 
 # Macbook Air M2のセットアップに使った個人用メモ

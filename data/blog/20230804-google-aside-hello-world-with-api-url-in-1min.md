@@ -1,5 +1,6 @@
 ---
 tags: "Aside"
+date: '2023-08-04'
 ---
 
 # Claspに代わってGoogle Asideで１分でWebアプリを作る

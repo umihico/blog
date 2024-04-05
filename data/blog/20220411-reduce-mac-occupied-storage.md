@@ -4,6 +4,7 @@ references:
   - "https://support.apple.com/ja-jp/HT206996"
   - "https://qiita.com/ktsujichan/items/726e0f896e30b355fee1"
   - "https://docs.docker.com/engine/reference/commandline/system_prune/"
+date: '2022-04-11'
 ---
 
 # 300GBあった「システムデータ」を削除した話

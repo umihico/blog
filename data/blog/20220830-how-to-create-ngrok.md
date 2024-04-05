@@ -1,5 +1,6 @@
 ---
 tags: "Ngrok,EC2,Terraform"
+date: '2022-08-30'
 ---
 
 # 自家製ngrokの作り方

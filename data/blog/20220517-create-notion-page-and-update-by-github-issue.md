@@ -1,5 +1,6 @@
 ---
 tags: "Notion,Github Actions"
+date: '2022-05-17'
 ---
 
 # GithubのIssueでNotionのページを作って更新する
