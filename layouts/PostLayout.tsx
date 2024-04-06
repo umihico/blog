@@ -87,6 +87,15 @@ export default function PostLayout({ content, authorDetails, next, prev, childre
                             </Link>
                           )}
                         </dd>
+                        <dt className="sr-only">Prairie Card</dt>
+                        <dd>
+                          <Link
+                            href="https://my.prairie.cards/u/umihico"
+                            className="text-primary-500 hover:text-primary-600 dark:hover:text-primary-400"
+                          >
+                            @umihico
+                          </Link>
+                        </dd>
                       </dl>
                     </li>
                   ))}
