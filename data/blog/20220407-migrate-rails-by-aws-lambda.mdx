@@ -1,0 +1,229 @@
+---
+tags: ['AWS', 'AWS Lambda', 'Ruby on Rails', 'Terraform']
+references:
+  - "https://qiita.com/shifumin/items/f4f4ea68d9963dbe9ca2"
+date: '2022-04-07'
+title: 'AWS LambdaでRailsのマイグレーションを秒殺する基盤を作った'
+summary: 'LambdaでRailsを動かしてマイグレーションすれば、コストもかからず、かつ秒で終わるので高速だった。高速化したい・CIにマイグレーション乗せたい・ECS使いたくない・RDSがプライベートサブネットにあって常時起動してる踏み台がないパターン向け'
+---
+
+
+LambdaでRailsを動かしてマイグレーションすれば、コストもかからず、かつ秒で終わるので高速だった。高速化したい・CIにマイグレーション乗せたい・ECS使いたくない・RDSがプライベートサブネットにあって常時起動してる踏み台がないパターン向け
+
+## マイグレーション専用イメージを作る
+
+初期パターンとして、App Runner（またはECS）に乗せる本番イメージに`bootstrap`などを手書きしてLambda対応もさせる案を導入した。しかし[このドキュメント](https://docs.aws.amazon.com/lambda/latest/dg/runtimes-walkthrough.html)のみならず[エラー時のレスポンスを返すパターンを作らないといけなかったり](https://docs.aws.amazon.com/ja_jp/lambda/latest/dg/runtimes-api.html#runtimes-api-next)、やはりフル自作は完成度が低くなりがちになった。最大の問題点は本番イメージを流用するとなるとイメージの更新も関数実行前に都度行うべきになってしまうことで、そうなると＋３０秒くらい余計にかかり時間が倍増するので魅力も落ちる。専用のイメージを作って、[aws_lambda_ric](https://github.com/aws/aws-lambda-ruby-runtime-interface-client)を使う感じにしたい
+
+必要なファイルはDockerfileとdatabase.ymlとapp.rbの３つのみ。database.ymlはデフォではなく環境変数参照に変更したかっただけのため省略する。Dockerfile内でrails newして資材を展開している
+
+### Dockerfile
+
+```Dockerfile
+FROM ruby:3.1.1-slim
+
+ENV APP_ROOT /var/task
+ENV RAILS_ROOT $APP_ROOT
+ENV RAILS_ENV production
+ENV RACK_ENV $RAILS_ENV
+
+WORKDIR $APP_ROOT
+
+RUN apt-get update -y && \
+  apt-get install -y \
+  build-essential \
+  default-mysql-client \
+  libmariadb-dev \
+  curl && \
+  gem update --system && \
+  gem install rails && \
+  rails new . \
+  --database=mysql \
+  --skip-yarn \
+  --skip-git \
+  --skip-action-mailer \
+  --skip-active-storage \
+  --skip-action-cable \
+  --skip-sprockets \
+  --skip-javascript \
+  --skip-turbolinks \
+  --skip-test \
+  --api && \
+  bundle add aws-sdk-kms aws_lambda_ric
+
+COPY database.yml config/
+COPY app.rb ./
+
+RUN chmod 644 config/master.key
+
+# Lamdba上で上書きされるが、ローカル開発でマイグレーション役もさせてるので書いてる
+CMD [ "bundle", "exec", "rails", "db:migrate" ]
+```
+
+### app.rb
+
+```ruby
+require_relative 'config/application'
+require 'base64'
+require 'fileutils'
+require 'securerandom'
+
+module App
+  class Handler
+    def self.process(event:, context:)
+
+      # コンテナが再利用されると以前書き込んだマイグレーションファイルが影響する可能性があるので都度ランダムに
+      directory_name = "/tmp/#{SecureRandom.urlsafe_base64(10)}/db"
+      FileUtils.mkdir_p "#{directory_name}/migrate"
+
+      # シリアライズされたファイルのデータを受け取って書き込み
+      event.each do |path, content|
+        File.open("#{directory_name}/#{path}", 'w') { |f| f.write(Base64.decode64(content)) }
+      end
+
+      Rails.application.load_tasks
+
+      # Lambdaの環境変数に生パスワードを書きたくなかったので暗号化状態で受け取っており復号化
+      if ENV['DATABASE_PASSWORD_ENCRYPTED'].present?
+        response = Aws::KMS::Client.new.decrypt ciphertext_blob: Base64.decode64(ENV.fetch('DATABASE_PASSWORD_ENCRYPTED'))
+        ENV['DATABASE_PASSWORD'] = response.plaintext
+      end
+
+      # /tmp配下しか書き込み不可のため変更する必要あり
+      Rails.application.config.paths['db'] = directory_name
+      Rails.application.config.paths['db/migrate'] = "#{directory_name}/migrate"
+
+      # コンテナが再利用されるとreenableしないとinvokeが起動してくれない
+      Rake::Task['db:migrate'].reenable
+      Rake::Task['db:migrate'].invoke
+    end
+  end
+end
+```
+
+## Lambda関数のデプロイ
+
+Terraformを使いました。`var.`はてきとうです。
+
+```hcl
+module "migration" {
+  source = "terraform-aws-modules/lambda/aws"
+
+  function_name  = "migrator"
+  create_package = false
+
+  image_uri    = "${var.repository_url}:latest"
+  package_type = "Image"
+
+  timeout = 60
+
+  vpc_subnet_ids         = var.private_subnets
+  vpc_security_group_ids = [var.default_security_group_id]
+  attach_network_policy  = true
+
+  image_config_entry_point = ["/usr/local/bundle/bin/aws_lambda_ric"]
+  image_config_command     = ["app.App::Handler.process"]
+
+  environment_variables = {
+    "RAILS_LOG_TO_STDOUT"         = "enabled"
+    "DATABASE_HOST"               = var.this_rds_cluster_endpoint
+    "DATABASE_NAME"               = var.database_name
+    "DATABASE_PASSWORD_ENCRYPTED" = var.database_master_password_encrypted
+  }
+
+  attach_policy_statements = true
+  policy_statements = [
+    {
+      effect    = "Allow"
+      actions   = ["kms:Decrypt"]
+      resources = [var.kms_key.arn]
+    },
+    {
+      effect = "Allow"
+      actions = [
+        "ecr:BatchGetImage",
+        "ecr:GetDownloadUrlForLayer",
+      ]
+      resources = [var.ecr_repository_arn]
+    },
+  ]
+}
+```
+
+## CircleCIからLambdaを起動する
+
+マイグレーションファイルを収集するスクリプト、amazon/aws-cliはpython2がネイティブで動いたのでpythonでコードを書きました。そしてamazon/aws-cliは使わなかったっていう（後述）
+
+### .circleci/config.yml(一部抜粋)
+
+```yml
+jobs:
+  migrate:
+    docker:
+      - image: cimg/python:3.10.4
+        environment:
+          PAGER: ""
+    working_directory: ~/projects/db
+    steps:
+      - checkout:
+          path: ..
+      - run:
+          name: Install aws-cli
+          command: |
+            curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip -q awscliv2.zip
+            sudo ./aws/install
+      - run:
+          name: Run migration in AWS Lambda
+          command: |
+            PAYLOAD=$(python payload.py migrate)
+            aws lambda invoke --function-name migrator --payload $PAYLOAD result.txt
+            cat result.txt
+            cat result.txt | grep -v errorMessage > /dev/null
+```
+
+
+### payload.py
+
+```python
+import os
+import json
+import base64
+import sys
+
+path = sys.argv[1]
+filenames = os.listdir(path)
+
+data = {}
+for filename in filenames:
+    with open(os.path.join(path, filename), "r") as f:
+        data['migrate/' +
+             filename] = base64.b64encode(f.read().encode("utf-8")).decode('utf-8')
+
+print(base64.b64encode(json.dumps(data).encode("utf-8")).decode('utf-8'))
+```
+
+## 実行結果
+
+19秒でマイグレーションジョブを完了することができました:tada:
+
+- CircleCIの環境構築2秒
+- aws-cliインストール2秒
+- マイグレーション14秒
+
+おそらくコールドスタートで6秒くらいとマイグレーションで8秒くらいのはず
+
+<img
+  width="587"
+  src="https://user-images.githubusercontent.com/39179585/162106271-e2c45d4e-3239-4366-a63d-49c7ee79e09b.png"
+/>
+
+## 直面した問題点たち
+
+- amazon/aws-cliイメージをCIで使って、CLIのインストール時間(2〜4秒)を削りたい  
+  →gitやtarなど基本的なライブラリがなくCircleCIの`checkout`ができない。諦める
+- [公式Lambda用Rubyイメージ](https://gallery.ecr.aws/lambda/ruby)は2.5と2.7しかない  
+  →ruby:slimに手作業でaws_lambda_ricいれた
+- マイグレーションファイル群を一括でLambdaコンテナに転送したいが[AWSのSDK](https://docs.aws.amazon.com/sdk-for-ruby/v2/api/Aws/S3/Client.html)に[`aws s3 sync`相当のものがない](https://github.com/aws/aws-sdk-ruby/issues/824)のでファイル一個ずつダウンロードする形になる  
+  →S3経由で受け渡しせずLambda実行時の--payload引数にファイル群をシリアライズして渡した。zipやtarを使い１つのファイルとして受け渡せばよいが、利用予定だったamazon/aws-cliではzipもtarも無かったため
+- Dockerイメージ内にconfig/master.keyあり  
+  →除外して環境変数から与えることもできなくないが、用途としては内包してても問題ないのでとりあえず放置
