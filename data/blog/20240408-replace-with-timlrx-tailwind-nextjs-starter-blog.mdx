@@ -1,0 +1,41 @@
+---
+tags: ['Blog', 'Next.js', 'Tailwind']
+date: '2024-04-08'
+title: 'ブログをフルスクラッチからOSSの既製テンプレに乗り換えました'
+summary: 'フルスクラッチでブログを育てるのに疲れたので、6000スターを獲得してるtimlrx/tailwind-nextjs-starter-blogを導入して全体を入れ替えました'
+---
+
+もともとは、[Next.jsの公式Blog Starter Kit](https://vercel.com/templates/next.js/blog-starter-kit)を基にフルスクラッチでの開発を始め、インフラを含めた開発・運用を行っていました。しかし、細かいマークダウンの表記対応やエッジケースでのスタイリングの問題が目立ち始め、フルスクラッチでブログを成長させることに疲れを感じました。そこで、6,000スターを獲得している[timlrx/tailwind-nextjs-starter-blog](https://github.com/timlrx/tailwind-nextjs-starter-blog)を導入し、全体を置き換えることにしました。
+
+各記事のメタタグの移行は、ChatGPTによって書かれたコードを使用して自動的に一括変換することができました。以前に比べて、明らかにパフォーマンスが向上しているのを感じます。
+
+今回は、元のリポジトリを維持したかったため、フォークすることなく、全てのコミットを削除した後にoriginを追加し、以下のようにpull & mergeを行いました。
+
+```bash
+git remote add timlrx https://github.com/timlrx/tailwind-nextjs-starter-blog.git
+git merge timlrx/main --allow-unrelated-histories
+```
+
+この方法だと、自分の変更を保持しながらも、元のリポジトリの更新をマージしやすくなると個人的には思います。また、OSSに貢献するためにプルリクエストを作成したい場合は、フォークして別のリポジトリで管理する方が認知負荷が低くできます。[早速デモ用の記事でファイルパスの綴りミスを見つけたため、プルリクエストを送りました。](https://github.com/timlrx/tailwind-nextjs-starter-blog/pull/888)
+
+将来のコンフリクトの発生を最小限に抑えるため、変更は最小限に留めるよう心がけました。READMEにも要対応の項目が記載されていますが、一部情報が不足しており、想定以上に工数がかかってしまいました。[プルリクエストはこちら。](https://github.com/umihico/blog/pull/70)
+
+## Before & After
+
+旧バージョンを供養する意味も込めて、比較画像を残しておきます。
+
+### Before
+
+![before-top](/static/images/blog/20240408/before-top.png)
+![before-article](/static/images/blog/20240408/before-article.png)
+
+### After
+
+![after-top](/static/images/blog/20240408/after-top.png)
+![after-article](/static/images/blog/20240408/after-article.png)
+
+## SEO(PageSpeed Insight)も良好
+
+PageSpeed Insightの結果も良好です。フルスクラッチの時から力を入れていたため、大幅な改善はありませんでした。
+
+![seo](/static/images/blog/20240408/seo.png)
