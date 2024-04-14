@@ -1,0 +1,332 @@
+---
+tags: ['AWS', 'AWS WAF', 'Terraform']
+date: '2024-04-14'
+title: 'AWS WAFのルール設定とSlack通知をTerraformで作ったのでメモ'
+summary: '脆弱性を狙った攻撃やDOS攻撃の対策としてAWS WAFを再チューニングしてみました。本番適用する前に偽陽性でブロックしてしまわないよう全てカウントモードでAWS Mangedの全ルールとRate limitを適用し、Slack通知を実装しました。'
+---
+
+脆弱性を狙った攻撃やDOS攻撃の対策としてAWS WAFを再チューニングしてみました。本番適用する前に偽陽性でブロックしてしまわないよう全てカウントモードでAWS Mangedの全ルールとRate limitを適用し、Slack通知を実装しました。閾値などは各値はサンプルです。
+
+## Slack通知用のAWS Chatbot、SNS topicを作る
+
+手動によるAWSとSlack連携が既に済んでいる状況で、以下のようにSlackのチャンネル登録とSNS topicと作成を行いました。
+
+```
+terraform {
+  backend "local" {
+    path = "terraform.tfstate"
+  }
+}
+
+provider "aws" {
+  region = "ap-northeast-1"
+}
+
+variable "slack_channels" {
+  description = "通知したい各チャンネル"
+  type        = map(string)
+  default = {
+    "dev_notice" = "C0HOGEHOGE"
+  }
+}
+
+resource "aws_iam_role" "chatbot" {
+  name = "tf-chatbot-role"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = "sts:AssumeRole"
+        Principal = {
+          Service = "chatbot.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_sns_topic" "chatbot" {
+  for_each = var.slack_channels
+  name     = "tf-slack-${each.key}"
+}
+
+resource "aws_cloudformation_stack" "chatbot" {
+  # 現在だとAWS ChatbotのリソースはCloudFormationのリソースとして作成する必要がある。APIが提供されていないため、terraformもchatbotのresourceを提供できていない。
+
+  for_each = var.slack_channels
+
+  name = "tf-chatbot-slack-channel-${each.value}" # チャンネル名にアンダースコアがあると使えないのでチャンネルIDを使って命名する
+
+  template_body = yamlencode({
+    Description = "Managed by Terraform"
+    Resources = {
+      AlertNotifications = {
+        Type = "AWS::Chatbot::SlackChannelConfiguration"
+        Properties = {
+          ConfigurationName = "channel-${each.key}"
+          SlackWorkspaceId  = "T0WORKSPACE"
+          SlackChannelId    = each.value
+          LoggingLevel      = "NONE"
+          IamRoleArn        = aws_iam_role.chatbot.arn
+          SnsTopicArns      = [aws_sns_topic.chatbot[each.key].arn]
+        }
+      }
+    }
+  })
+}
+
+output "topic_arns" {
+  value = {
+    for key, value in aws_sns_topic.chatbot : key => value.arn
+  }
+}
+```
+
+## Terraform用に全てのAWSマネージドルールを抽出する。
+
+以下のコマンドで全てのルールを抽出できました。
+
+```Terraform
+aws wafv2 list-available-managed-rule-groups --scope REGIONAL
+```
+
+## AWS WAF、Slack通知用アラーム、リクエストのロギングを設定する
+
+[AWS WAFのAWSマネージドルールをTerraformで一括追加する方法](https://zenn.dev/tsumita7/articles/202306-aws-to-add-managed-rules-to-aws-waf-tf)を参考に全Managedルールをカウントモードで設定し、[公式のRate Based](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/wafv2_web_acl#rate-based)を参考にしてRate Limitを設定しました。
+
+また、該当したリクエストをCloudwatch Logsで保存していますが、Sampled requestsが優秀なので本番運用に切り替える際には不要になるかもしれません。
+
+```
+import {
+  to = aws_wafv2_web_acl.staging
+  id = "id/slug/REGIONAL"
+}
+
+variable "aws_managed_rules" {
+  type = map(object({
+    name            = string
+    priority        = number
+    alarm_threshold = number
+  }))
+  default = {
+    AWSManagedRulesCommonRuleSet = {
+      name            = "AWSManagedRulesCommonRuleSet"
+      priority        = 100
+      alarm_threshold = 1
+    },
+    AWSManagedRulesAdminProtectionRuleSet = {
+      name            = "AWSManagedRulesAdminProtectionRuleSet"
+      priority        = 200
+      alarm_threshold = 1
+    },
+    AWSManagedRulesKnownBadInputsRuleSet = {
+      name            = "AWSManagedRulesKnownBadInputsRuleSet"
+      priority        = 300
+      alarm_threshold = 1
+    },
+    AWSManagedRulesSQLiRuleSet = {
+      name            = "AWSManagedRulesSQLiRuleSet"
+      priority        = 400
+      alarm_threshold = 1
+    },
+    AWSManagedRulesLinuxRuleSet = {
+      name            = "AWSManagedRulesLinuxRuleSet"
+      priority        = 500
+      alarm_threshold = 1
+    },
+    AWSManagedRulesUnixRuleSet = {
+      name            = "AWSManagedRulesUnixRuleSet"
+      priority        = 600
+      alarm_threshold = 1
+    },
+    AWSManagedRulesWindowsRuleSet = {
+      name            = "AWSManagedRulesWindowsRuleSet"
+      priority        = 700
+      alarm_threshold = 1
+    },
+    AWSManagedRulesPHPRuleSet = {
+      name            = "AWSManagedRulesPHPRuleSet"
+      priority        = 800
+      alarm_threshold = 1
+    },
+    AWSManagedRulesWordPressRuleSet = {
+      name            = "AWSManagedRulesWordPressRuleSet"
+      priority        = 900
+      alarm_threshold = 1
+    },
+    AWSManagedRulesAmazonIpReputationList = {
+      name            = "AWSManagedRulesAmazonIpReputationList"
+      priority        = 1000
+      alarm_threshold = 1
+    },
+    AWSManagedRulesAnonymousIpList = {
+      name            = "AWSManagedRulesAnonymousIpList"
+      priority        = 1200
+      alarm_threshold = 1
+    },
+    AWSManagedRulesBotControlRuleSet = {
+      name            = "AWSManagedRulesBotControlRuleSet"
+      priority        = 1300
+      alarm_threshold = 1
+    }
+    # AWSManagedRulesATPRuleSet = {
+    # "Error reason: REQUIRED_FIELD_MISSING, field: MANAGED_RULE_GROUP_CONFIG, parameter: ManagedRuleGroupStatement"となるので一旦コメントアウト
+    #   name            = "AWSManagedRulesATPRuleSet"
+    #   priority        = 1300
+    #   alarm_threshold = 1
+    # }
+    # AWSManagedRulesACFPRuleSet = {
+    # "Error reason: REQUIRED_FIELD_MISSING, field: MANAGED_RULE_GROUP_CONFIG, parameter: ManagedRuleGroupStatement"となるので一旦コメントアウト
+    #   name            = "AWSManagedRulesACFPRuleSet"
+    #   priority        = 1300
+    #   alarm_threshold = 1
+    # }
+  }
+}
+
+resource "aws_wafv2_web_acl" "staging" {
+  name  = "waf-for-staging"
+  scope = "REGIONAL"
+
+  default_action {
+    allow {}
+  }
+
+  visibility_config {
+    cloudwatch_metrics_enabled = true
+    metric_name                = "waf-for-staging"
+    sampled_requests_enabled   = true
+  }
+
+  dynamic "rule" {
+    for_each = var.aws_managed_rules
+    content {
+      name     = rule.value.name
+      priority = rule.value.priority
+      override_action {
+        count {} # この記述でカウントモードになる
+      }
+      statement {
+        managed_rule_group_statement {
+          name        = rule.value.name
+          vendor_name = "AWS"
+        }
+      }
+      visibility_config {
+        cloudwatch_metrics_enabled = true
+        metric_name                = "waf-staging-${rule.value.name}"
+        sampled_requests_enabled   = true
+      }
+    }
+  }
+
+  rule {
+    name     = "waf-staging-rate-limiting"
+    priority = 2000
+
+    action {
+      count {}
+    }
+
+    statement {
+      rate_based_statement {
+        limit                 = 300
+        aggregate_key_type    = "IP"
+        evaluation_window_sec = 60
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "waf-staging-rate-limiting"
+      sampled_requests_enabled   = true
+    }
+  }
+}
+
+data "aws_sns_topic" "slack" {
+  name = "tf-slack-dev_notice"
+}
+
+resource "aws_cloudwatch_metric_alarm" "staging_managed_rule_counter_alarms" {
+  for_each                  = var.aws_managed_rules
+  alarm_name                = "waf-staging-${each.value.name}-alarm"
+  datapoints_to_alarm       = "1"
+  comparison_operator       = "GreaterThanOrEqualToThreshold"
+  evaluation_periods        = "1"
+  metric_name               = "CountedRequests"
+  namespace                 = "AWS/WAFV2"
+  period                    = "60" # 毎分
+  statistic                 = "Sum"
+  threshold                 = each.value.alarm_threshold
+  actions_enabled           = true
+  alarm_actions             = [data.aws_sns_topic.slack.arn]
+  insufficient_data_actions = []
+  ok_actions                = [data.aws_sns_topic.slack.arn]
+  treat_missing_data        = "notBreaching"
+  dimensions = {
+    Region = "ap-northeast-1"
+    WebACL = aws_wafv2_web_acl.staging.name
+    Rule   = "waf-staging-${each.value.name}"
+  }
+}
+
+
+resource "aws_cloudwatch_metric_alarm" "staging_rate_limiting_alarm" {
+  alarm_name                = "waf-staging-rate-limiting-alarm"
+  datapoints_to_alarm       = "1"
+  comparison_operator       = "GreaterThanOrEqualToThreshold"
+  evaluation_periods        = "1"
+  metric_name               = "CountedRequests"
+  namespace                 = "AWS/WAFV2"
+  period                    = "60" # 毎分
+  statistic                 = "Sum"
+  threshold                 = "1"
+  actions_enabled           = true
+  alarm_actions             = [data.aws_sns_topic.slack.arn]
+  insufficient_data_actions = []
+  ok_actions                = [data.aws_sns_topic.slack.arn]
+  treat_missing_data        = "notBreaching"
+  dimensions = {
+    Region = "ap-northeast-1"
+    WebACL = aws_wafv2_web_acl.staging.name
+    Rule   = "waf-staging-rate-limiting"
+  }
+}
+
+resource "aws_cloudwatch_log_group" "waf_blocked_or_counted_logs" {
+  name              = "aws-waf-logs-staging-blocked-or-counted-only"
+  retention_in_days = 7
+}
+
+resource "aws_wafv2_web_acl_logging_configuration" "staging_logging" {
+  resource_arn            = aws_wafv2_web_acl.staging.arn
+  log_destination_configs = [aws_cloudwatch_log_group.waf_blocked_or_counted_logs.arn]
+  logging_filter {
+    default_behavior = "DROP"
+    filter {
+      behavior    = "KEEP"
+      requirement = "MEETS_ANY"
+      condition {
+        action_condition {
+          action = "BLOCK"
+        }
+      }
+      condition {
+        action_condition {
+          action = "COUNT"
+        }
+      }
+    }
+  }
+}
+```
+
+## 終わりに
+
+今回はテスト導入だけなので、これから低い閾値でアラートを意図的にもらうことから調査を始めて、偽陽性の頻度を見て閾値やreCAPTCHA、パス単位の制御を入れようと思います。
+
+Slack通知を実装できましたが、今の設定では異常発生から正常への復帰Slack通知まで一定の時間がかかってしまうのでなんとかしたいところです。
+
+また、今までimportコマンドでやっていたものを今回始めて[importブロック](https://developer.hashicorp.com/terraform/language/import)を使ってみましたが、非常に便利でした。
