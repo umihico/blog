@@ -1,0 +1,139 @@
+---
+tags: ['Rails', 'Rack']
+date: '2024-04-21'
+title: '【Rails】gem無しで遅延実行を実現できるrack.after_replyを試してみた'
+summary: 'HTTP通信など時間消費の大きい処理でユーザー体験を損なわないよう、ジョブキューを使う方法より簡易な方法がないか調べたところ、Githubでも採用されているrack.after_replyを知ることができました。'
+---
+
+HTTP通信など時間消費の大きい処理でユーザー体験を損なわないよう、そしてジョブキューを使う方法より簡素な方法がないか調べたところ、Githubでも採用されているrack.after_replyを知ることができました。
+
+[Performance at GitHub: deferring stats with rack.after_reply](https://github.blog/2022-04-11-performance-at-github-deferring-stats-with-rack-after_reply/)
+
+レスポンスを返した後に実行してくれるようで、バックグラウンド処理としてはSidekiqあたりが有名ですが、今回はそれらのgemを用いずこの方法を試してみました。
+
+## ミドルウェアとして用いるパターン
+
+Githubのブログで紹介されているコードに近いですが、ミドルウェアとして最小で実装するのは以下のような形になりました
+
+```ruby
+# app/middleware/after_response_middleware.rb
+class AfterResponseMiddleware
+  def initialize(app)
+    @app = app
+    @tasks = []
+  end
+
+  def call(env)
+    env["rack.after_reply"] ||= []
+    env["rack.after_reply"] << -> do
+      sleep 3
+      puts "in rack.after_reply: #{Time.now.iso8601(6)}"
+    end
+
+    status, headers, response = @app.call(env)
+    [status, headers, response]
+  end
+end
+```
+
+サーバーを立ち上げて`curl "http://localhost:3000/articles?hoge=fuga"`すると、レスポンスはすぐに返り、３秒後に遅延したログが出力されます。
+
+```
+Started GET "/articles?hoge=fuga" for 127.0.0.1 at 2024-04-21 16:41:49 +0900
+Processing by ArticlesController#index as */*
+  Parameters: {"hoge"=>"fuga"}
+contorller: 2024-04-21T16:41:49.769962+09:00
+Completed 200 OK in 5ms (Views: 0.4ms | ActiveRecord: 0.0ms | Allocations: 1592)
+
+
+in rack.after_reply: 2024-04-21T16:41:52.777703+09:00
+```
+
+以下のようにコントローラー側の処理で例外が発生しても、after_replyはちゃんと実行してくれています。
+
+```ruby
+class ArticlesController < ApplicationController
+  def index
+    raise "An error occurred!"
+    render json: { message: "Hello, Rails!" }
+  end
+end
+```
+
+```
+Started GET "/articles?hoge=fuga" for 127.0.0.1 at 2024-04-21 16:47:57 +0900
+Processing by ArticlesController#index as */*
+  Parameters: {"hoge"=>"fuga"}
+Completed 500 Internal Server Error in 1ms (ActiveRecord: 0.0ms | Allocations: 502)
+
+
+
+RuntimeError (An error occurred!):
+
+app/controllers/articles_controller.rb:3:in `index'
+app/middleware/after_response_middleware.rb:14:in `call'
+in rack.after_reply: 2024-04-21T16:48:00.986002+09:00
+```
+
+## コントローラー側で動的に処理を追加するパターン
+
+一部のリクエストだけに特定の遅延処理を加えたい場合は、私は大元のApplicationControllerを以下の様にしました。
+
+```ruby
+class ApplicationController < ActionController::Base
+  def after_response(&block)
+    request.env["rack.after_reply"] ||= []
+    request.env["rack.after_reply"] << block
+  end
+end
+```
+
+そして使いたいリクエストを処理するコントローラーにブロックを渡してあげます。
+
+```ruby
+class ArticlesController < ApplicationController
+  def index
+    puts "index: #{Time.now.iso8601(6)}"
+    after_response do
+      sleep 3
+      puts "in rack.after_reply v2 : #{Time.now.iso8601(6)}.\n\n"
+    end
+    render json: { message: "Hello, Rails!" }
+  end
+end
+```
+
+```
+Started GET "/articles?hoge=fuga" for 127.0.0.1 at 2024-04-21 16:56:21 +0900
+Processing by ArticlesController#index as */*
+  Parameters: {"hoge"=>"fuga"}
+index: 2024-04-21T16:56:22.198324+09:00
+Completed 200 OK in 1ms (Views: 0.4ms | ActiveRecord: 0.0ms | Allocations: 272)
+
+
+in rack.after_reply v2: 2024-04-21T16:56:25.205061+09:00.
+```
+
+こちらの記法の方が簡素で、動的な対応もしやすく取り扱いやすいですが、例外発生時の挙動は注意が必要そうです。 **after_responseのブロック定義後なら例外発生後でも実行されますが、after_response定義前だと実行されません。** before_actionで最初に実行しておくのがよさそうです。
+
+```ruby
+class ArticlesController < ApplicationController
+  def index
+    puts "index: #{Time.now.iso8601(6)}"
+    raise "An error occurred!" # after_responseが実行されない
+    after_response do
+      sleep 3
+      puts "in rack.after_reply v2 : #{Time.now.iso8601(6)}.\n\n"
+    end
+    raise "An error occurred!" # after_responseが実行される
+    render json: { message: "Hello, Rails!" }
+  end
+end
+```
+
+# 終わりに
+
+rack.after_replyはsidekiqなどに比べ、参考にできる情報が少なかったので記事にして残しました。
+非常に便利で個人的には積極的に活用したいという所感ですが、情報が少ないため技術的なデメリットや運用してわかったツラミなどがイマイチ分かっておらずです。
+
+運用してみてわかったことがあれば、加筆していきます。
