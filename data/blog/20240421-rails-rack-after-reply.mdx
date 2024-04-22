@@ -20,7 +20,6 @@ Githubのブログで紹介されているコードに近いですが、ミド�
 class AfterResponseMiddleware
   def initialize(app)
     @app = app
-    @tasks = []
   end
 
   def call(env)
