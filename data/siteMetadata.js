@@ -6,20 +6,21 @@ const siteMetadata = {
   description: '「Today I Learned」的なブログ',
   language: 'ja-jp',
   theme: 'system', // system, dark or light
-  siteUrl: 'https://umihi.co',
-  siteRepo: 'https://github.com/umihico/blog',
-  siteLogo: '/static/images/umihico/logo.png',
-  socialBanner: '/static/images/umihico/twitter-card.png',
-  // mastodon: 'https://mastodon.social/@mastodonuser',
-  // email: 'address@yoursite.com',
-  github: 'https://github.com/umihico',
-  twitter: 'https://twitter.com/umihico_',
-  facebook: 'https://facebook.comhttps://www.facebook.com/umihiko.iwasa',
-  // youtube: 'https://youtube.com',
-  linkedin: 'https://www.linkedin.com/in/umihico/',
-  // threads: 'https://www.threads.net',
-  // instagram: 'https://www.instagram.com',
-  locale: 'ja-JP',
+  siteUrl: 'https://tailwind-nextjs-starter-blog.vercel.app',
+  siteRepo: 'https://github.com/timlrx/tailwind-nextjs-starter-blog',
+  siteLogo: '/static/images/logo.png',
+  socialBanner: '/static/images/twitter-card.png',
+  mastodon: 'https://mastodon.social/@mastodonuser',
+  email: 'address@yoursite.com',
+  github: 'https://github.com',
+  x: 'https://twitter.com/x',
+  // twitter: 'https://twitter.com/Twitter',
+  facebook: 'https://facebook.com',
+  youtube: 'https://youtube.com',
+  linkedin: 'https://www.linkedin.com',
+  threads: 'https://www.threads.net',
+  instagram: 'https://www.instagram.com',
+  locale: 'en-US',
   analytics: {
     // If you want to use an analytics provider you have to add it to the
     // content security policy in the `next.config.js` file.
@@ -92,5 +93,30 @@ const siteMetadata = {
     // },
   },
 }
+
+const overrides = {
+  siteUrl: 'https://umihi.co',
+  siteRepo: 'https://github.com/umihico/blog',
+  siteLogo: '/static/images/umihico/logo.png',
+  socialBanner: '/static/images/umihico/twitter-card.png',
+  mastodon: null,
+  email: null,
+  github: 'https://github.com/umihico',
+  twitter: 'https://twitter.com/umihico_',
+  facebook: 'https://facebook.comhttps://www.facebook.com/umihiko.iwasa',
+  youtube: null,
+  linkedin: 'https://www.linkedin.com/in/umihico/',
+  threads: null,
+  instagram: null,
+  locale: 'ja-JP',
+}
+
+Object.entries(overrides).forEach(([key, value]) => {
+  if (value) {
+    siteMetadata[key] = value
+  } else {
+    delete siteMetadata[key]
+  }
+})
 
 module.exports = siteMetadata
