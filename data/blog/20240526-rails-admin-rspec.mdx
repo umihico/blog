@@ -1,0 +1,53 @@
+---
+tags: ['Rails', 'RailsAdmin', 'Rspec']
+date: '2024-05-26'
+title: 'Rails Adminが取り扱う全てのモデルのINDEX,SHOW,EDITを表示チェックするrspec'
+summary: 'あるモデルのRails Adminページがいつのまにか壊れていた、ということが起きないように作りました。また、このspecを導入すると副次的にですがRails Adminに登録するモデルはファクトリーの作成が必須になるので、記憶が新しいうちにファクトリーの作成を義務付けれるのは良い制約だとも思ってます。'
+---
+
+あるモデルのRails Adminページがいつのまにか壊れていた、ということが起きないように作りました。また、このspecを導入すると副次的にですがRails Adminに登録するモデルはファクトリーの作成が必須になるので、記憶が新しいうちにファクトリーの作成を義務付けれるのは良い制約だとも思ってます。
+
+設定に合わせてパス名を複数か単数かとか、RailsAdminにかかってる認証をバイパスする微調整などは個別対応が必要ですが、抽象的なのでRails Adminを別のに切り替えた際も手軽に使えそう。
+
+```ruby
+# spec/requests/rails_admin_spec.rb
+
+require "rails_helper"
+
+RSpec.describe "RailsAdminのモデル毎のINDEX,SHOW,EDITが表示されるか走査、兼factory定義漏れ検知", type: :request do
+  admin_path = Rails.application.routes.named_routes[:rails_admin].path.spec.to_s
+
+  RailsAdmin::Config.models.map(&:abstract_model).each do |abstract_model|
+    model_name = abstract_model.model_name
+    base_path = "#{admin_path}/#{model_name.underscore}"
+    factory_name = model_name.underscore.to_sym
+
+    # 特殊なパス、ファクトリ名に対応する場合
+    base_path = base_path.gsub(/\/audited\/audit/, "/audited~audit")
+    factory_name = factory_name.to_s.gsub(/audited\/audit/, "custom_auditor")
+
+    describe "#{model_name}のRailsAdminをテスト" do
+      before do
+        bypass_rails_admin_auth!
+      end
+
+      let!(:record) { create(factory_name) }
+
+      it "GET #{base_path}" do
+        get "#{base_path}"
+        expect(response).to have_http_status(:success)
+      end
+
+      it "GET #{base_path}/[ID]" do
+        get "#{base_path}/#{record.id}"
+        expect(response).to have_http_status(:success)
+      end
+
+      it "GET #{base_path}/[ID]/edit" do
+        get "#{base_path}/#{record.id}/edit"
+        expect(response).to have_http_status(:success)
+      end
+    end
+  end
+end
+```
