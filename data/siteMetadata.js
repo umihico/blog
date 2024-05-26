@@ -102,7 +102,7 @@ const overrides = {
   mastodon: null,
   email: null,
   github: 'https://github.com/umihico',
-  twitter: 'https://twitter.com/umihico_',
+  x: 'https://x.com/umihico_',
   facebook: 'https://facebook.comhttps://www.facebook.com/umihiko.iwasa',
   youtube: null,
   linkedin: 'https://www.linkedin.com/in/umihico/',
