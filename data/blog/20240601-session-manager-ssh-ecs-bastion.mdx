@@ -1,0 +1,184 @@
+---
+tags: ['Terraform', 'AWS', 'ECS']
+date: '2024-06-01'
+title: 'TerraformでセッションマネージャーでSSH接続(ECS Exec)できるECSをサクッと作るスニペット'
+summary: 'AppRunnerは便利ですが、まだSSHに対応してないので、同じイメージをECSにホストして、セッションマネージャーでSSH接続(ECS Exec)できるようにしました。'
+---
+
+AppRunnerは便利ですが、まだSSHに対応してないので、同じイメージをECSにホストして、セッションマネージャーでSSH接続(ECS Exec)できるようにしました。AIに吐き出させたコードを[ECS Exec Checker](https://github.com/aws-containers/amazon-ecs-exec-checker)で検証する、という流れで作りました。
+
+セッションマネージャー経由にすることで外部からアクセスを防ぎつつ、こちらからDB含む外部にはサーバーが接続できるようセキュリティグループを作っています。
+
+現在使用しているAppRunnerの環境変数、利用イメージを動的に取得して適用するようにしています。そのためApplyする際にはAppRunnerのARNを渡してあげる必要があります。
+
+```bash
+TF_VAR_app_runner_service_arn='arn:aws:apprunner:ap-northeast-1:123456789012:service/honban-hoge-service/abcd1234' terraform apply
+```
+
+また、[dataのexternal](https://registry.terraform.io/providers/hashicorp/external/latest/docs/data-sources/external)がエラー吐いてなかなか通らなかったので試行錯誤の結果をコメントで残しています。AppRunnerのDataで取得できないのでcli挟む必要があり無駄に辛かった、、、
+
+Applyで以下のコマンドがoutputされるので、apply後少ししてからコマンドを実行するとSSHできるようになります。
+
+```bash
+aws ecs execute-command --cluster temp-cluster --task $(aws ecs list-tasks --cluster temp-cluster --service-name temp-service --query 'taskArns[0]' --output text) --container temp-container --interactive --command /bin/sh
+```
+
+スニペットは以下です。
+
+```hcl
+terraform {
+  backend "local" {
+    path = "terraform.tfstate"
+  }
+}
+
+provider "aws" {
+  region = "ap-northeast-1"
+}
+
+variable "app_runner_service_arn" {
+}
+
+data "external" "app_runner_service_env_vars" {
+  # 多層のJSONだと受け取れない？のでkey-valueにしかならないところまで掘る
+  program = ["sh", "-c", "aws apprunner describe-service --service-arn '${var.app_runner_service_arn}' --output json --query 'Service.SourceConfiguration.ImageRepository.ImageConfiguration.RuntimeEnvironmentVariables'"]
+}
+
+data "external" "app_runner_service_image" {
+  # JSON形式で出力しないと次のエラーが出るのでjqで整形: data.externalがThe data source received unexpected results after executing the program. Program output must be a JSON encoded map of string keys and string values.
+  program = ["sh", "-c", "aws apprunner describe-service --service-arn '${var.app_runner_service_arn}' --output json --query 'Service.SourceConfiguration.ImageRepository.ImageIdentifier' | jq '{ImageUri: .}'"]
+}
+
+resource "aws_ecs_cluster" "temp_cluster" {
+  name = "temp-cluster"
+}
+
+resource "aws_iam_role" "ecs_task_execution_role" {
+  name = "temp-execution-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "ecs-tasks.amazonaws.com"
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+
+  managed_policy_arns = [
+    "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy",
+    "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+  ]
+}
+
+resource "aws_iam_role" "ecs_task_role" {
+  name = "temp-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "ecs-tasks.amazonaws.com"
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_policy" "ecs_task_policy" {
+  name        = "temp-policy"
+  description = "Policy for ECS Task Execution Role to allow SSM access"
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "ssmmessages:CreateControlChannel",
+          "ssmmessages:CreateDataChannel",
+          "ssmmessages:OpenControlChannel",
+          "ssmmessages:OpenDataChannel"
+        ],
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_role_policy_attachment" {
+  role       = aws_iam_role.ecs_task_role.name
+  policy_arn = aws_iam_policy.ecs_task_policy.arn
+}
+
+resource "aws_cloudwatch_log_group" "ecs_log_group" {
+  name              = "/ecs/temp"
+  retention_in_days = 30
+}
+
+resource "aws_ecs_task_definition" "temp_task" {
+  family                   = "temp"
+  requires_compatibilities = ["FARGATE"]
+  network_mode             = "awsvpc"
+  cpu                      = "1024"
+  memory                   = "2048"
+  execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
+  task_role_arn            = aws_iam_role.ecs_task_role.arn
+
+  container_definitions = jsonencode([{
+    name       = "temp-container"
+    image      = data.external.app_runner_service_image.result["ImageUri"]
+    essential  = true
+    entryPoint = ["/bin/sh", "-c"]
+    command    = ["rails server -b 0.0.0.0"]
+    environment = [for key, value in data.external.app_runner_service_env_vars.result : {
+      "name" : key,
+      "value" : value,
+    }]
+    logConfiguration = {
+      logDriver = "awslogs"
+      options = {
+        "awslogs-group"         = aws_cloudwatch_log_group.ecs_log_group.name
+        "awslogs-region"        = "ap-northeast-1"
+        "awslogs-stream-prefix" = "ecs"
+      }
+    }
+  }])
+}
+
+resource "aws_ecs_service" "temp_service" {
+  name            = "temp-service"
+  cluster         = aws_ecs_cluster.temp_cluster.id
+  task_definition = aws_ecs_task_definition.temp_task.arn
+  desired_count   = 1
+  launch_type     = "FARGATE"
+
+  network_configuration {
+    subnets          = ["subnet-1234abcd"]
+    security_groups  = [aws_security_group.ecs_sg.id]
+    assign_public_ip = true
+  }
+
+  enable_execute_command = true
+}
+
+resource "aws_security_group" "ecs_sg" {
+  name_prefix = "ecs-temp-sg"
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+output "start_session_command" {
+  value = "aws ecs execute-command --cluster ${aws_ecs_cluster.temp_cluster.name} --task $(aws ecs list-tasks --cluster ${aws_ecs_cluster.temp_cluster.name} --service-name ${aws_ecs_service.temp_service.name} --query 'taskArns[0]' --output text) --container temp-container --interactive --command /bin/sh"
+}
+```
