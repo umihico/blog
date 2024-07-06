@@ -1,0 +1,142 @@
+---
+tags: ['Rails']
+date: '2024-07-06'
+title: 'Railsの権限統制Gem「CanCanCan」を深堀りしてみた'
+summary: 'CanCanCanを利用しようとしてみて、便利な半面、正しい使い方ができていなくヒヤッとしたパターンがありましたので、残しておきます。'
+images: ['/static/images/umihico/ogp/20240706-cancancan.webp']
+---
+
+[CanCanCan](https://github.com/CanCanCommunity/cancancan)を利用しようとしてみて、便利な半面、正しい使い方ができていなくヒヤッとしたパターンがありましたので、残しておきます。
+
+## authorize_resourceの罠
+
+Abilityを定義して、あとは`authorize_resource`をコントローラーに仕込んでおけば権限統制はOK、ではありませんでした。以下のように「titleが`demo_article_1234`なら読み込める」例を定義してみます。
+
+```ruby
+# app/models/ability.rb
+class Ability
+  include CanCan::Ability
+
+  def initialize(current_user)
+    can :read, Article, title: "demo_article_1234"
+  end
+end
+
+# app/controllers/users_controller.rb
+class ArticlesController < ApplicationController
+  authorize_resource
+  def show
+    @article = Article.find(param[:id])
+  end
+end
+```
+
+私は`authorize_resource`を定義しておけば、`authorize! :read, @article`を内部的にやってくれていると思いきや、実際に実行されているのは`authorize! :read, Article`でした。これはどういう違いになるかというと、レコードに依存する条件式までの判定はされず、クラスとアクションだけ、つまり先頭の「`can :read, Article`と定義されてるじゃん、ヨシ」というようにパスしてしまいます。その結果、この例ではいかなるtitleのレコードであれ表示されてしまいます。
+
+一方、`load_and_authorize_resource`を使うと挙動が`authorize! :read, @article`になり意図通り(?)に`CanCan::AccessDenied`例外が発生します。中のコードを見てみると、他にもオプション設定やアクションがnew/createか否かなど、少し複雑な条件式でクラスとレコードのどちらを見るのかを制御されていました。なおbefore_actionで@articleの定義をshow関数の前に定義してもだめでした（パスしてしまう）。この辺の細かい挙動の差について、ドキュメントでは見つけられませんでした。
+
+既に同じことを記事にしてくれている方がおり、とても助かりました。
+
+[【Ruby on Rails】CanCanCan の authorize_resource はレコードの権限まではチェックしてくれない](https://qiita.com/layered-fuchi/items/689a5a32b42e0092f23f)
+
+## check_authorizationについて
+
+上述の`authorize_resource`の罠について、`check_authorization`も交えてもう少し記述します。`authorize_resource`の定義忘れが怖い場合、`check_authorization`をApplicationControllerにでも付与しておけば定義漏れがあれば自動でコケるような仕組みを作ることができます。
+
+しかし、上記の`authorize_resource`の挙動が意図しない、クラスだけ判定する挙動になってしまっている場合であっても、`check_authorization`は「`authorize!`実行済み」としてパスしてしまいます。`check_authorization`に非はないものの、どうも上述の`authorize_resource`の罠に陥るリスクを倍増させている体験でした。クラスではなくインスタンス変数をauthorize!したか担保する`check_instance_authorization`的なヘルパーが欲しいところでした。
+
+## load_and_authorize_resourceについて
+
+そもそもドキュメント通り`load_and_authorize_resource`使えば解決じゃん、という点を考察します。[公式ドキュメント](https://github.com/CanCanCommunity/cancancan/blob/eab3019553dedf0ab2487e1aacd06bb16d89c703/docs/controller_helpers.md?plain=1#L93-L128)を見ても、以下の通りインスタンス変数の定義や認可を隠蔽してくれて非常にスリムにRESTfulなコントローラーを記述できるようになります。
+
+```ruby
+class ArticlesController < ApplicationController
+  load_and_authorize_resource
+
+  def index
+    # @articles are already loaded...see details in later chapter
+  end
+
+  def show
+    # the @article to show is already loaded and authorized
+  end
+
+  def create
+    # the @article to create is already loaded, authorized, and params set from article_params
+    @article.create
+  end
+
+  def edit
+    # the @article to edit is already loaded and authorized
+  end
+
+  def update
+    # the @article to update is already loaded and authorized
+    @article.update(article_params)
+  end
+
+  def destroy
+    # the @article to destroy is already loaded and authorized
+    @article.destroy
+  end
+
+  protected
+
+  def article_params
+    params.require(:article).permit(:body)
+  end
+end
+```
+
+しかし、以下の通りの理由で採用を見送りました。
+
+### 権限統制をCanCanCanのみに依存してしまう
+
+CanCanCanに任せたときに起きるクエリは例えばshowなら`Article.find(param[:id])`から構築されますが、よりベターな書き方として`current_user.articles.find(param[:id])`などアソシエーションを駆使するような、本人以外の記事編集はできないことを担保する通常のプラクティスに従った書き方を維持したいと思いました。（オーバーライドもできるみたいですが、そうなるとauthorize!の対象はレコードにしたいからload_and_authorize_resourceと書くけどload部分はオーバライドするような、意図をコメント補足が必須なコードになるのは避けたかったです。できるか未検証）
+
+### includesできない
+
+includes句でN+1を抑えたり、アプリとDBの通信の往復回数を減らしたりといった通常のプラクティスを維持したいと思いました。オーバーライドもできるみたいですが（ｒｙ
+
+### indexのリファクタ工数が辛い
+
+indexだとインスタンス変数は例えば`@articles = Article.accessible_by(current_ability)`になるようですが、これが現状から挙動を変えないか各コントローラーを動作確認するのが辛そうでした。テストがしっかり網羅されているなら、ここは辛くならないと思います。
+
+### 現実はそこまで徹底してRESTfulに書けていない問題
+
+- このときは`load_and_authorize_resource`、このときは`authorize_resource`と手書きロード処理、このときは`authorize!`など記法が分散するのが嫌
+- RESTfulじゃないアクションもあり同じく記法が分散する
+- １つのアクションで複数のクラスをまたがった権限をチェックしたいとには都度authorize!を挿入する方が使い勝手がよい。コントローラー本来の責務となる同名モデルの権限統制は`load_and_authorize_resource`でやっていて、それに紐づくモデルは`authorize!`というのは見にくい
+
+## 実際はどう使えばよいか
+
+権限の細かさや、細かさが発生するコントローラーの割合などはアプリケーションにより千差万別だと思うので、正しいものはないと思いますが、思いついたものをピックアップします。
+
+### authorize!を常に使い、レコードを指定する
+
+`load_and_authorize_resource`や`authorize_resource`を禁じて`authorize!`を常に使います。以下のメリットがあるかと思います。
+
+- 上記の意図しない権限統制になっている罠を防ぎやすい
+- 記法が分散せずauthorize!メソッドとabilityの記述のみにでき統一感がある
+- 明示的かつ疎結合なので学習コストが低い
+- 異なる複数のモデルのレコードでも明示的にチェックできる
+- 従来通りアソシエーションの駆使、includesの活用で安全性にもパフォーマンスにも配慮できる
+
+個人的には好きな案。記述量が増えてしまいますが、学習コストが低く疎結合、従来のセキュリティを置き換えずCanCanCanで二重にする安心感など。後述しますが、これくらい安易にしないと`load_and_authorize_resource`をはじめとしたCanCanCanのフル活用は人類には早すぎるような感覚です。
+
+### アソシエーションで表現できるならCanCanCanは使わない。複雑な権限統制ロジックがある部分にだけスポットで使う
+
+CanCanCanにあらゆる権限統制を任せず、複雑な要件のときにだけ活躍してもらうパターン。ability.rbではcurrent_userを引数に柔軟に条件分岐が設定でき、責務と非常に独立して記述できるので、例えば役職で決裁権限、職務権限規程などが細かく分かれている際に、リクエスト処理を司るコントローラーとは独立して集中して書けるのはよいですね。
+
+また、indexで返したい一覧リソースはアソシエーションだけで十分済みCanCanCanが不要になるパターンも多そう。
+
+言い換えると単純なロジックである基礎的な権限統制にはCanCanCanは使わない方がよいと思いました。SNSのArticleをいじれるのは所有者本人だけ、toB向けSasSで法人ユーザーは他社ユーザーのリソースの一切が見えない、などの要件であれば`current_user.articles`や`current_organization.users`などで担保できるので、CanCanCanでは定義しないということです。
+
+### 逆にCanCanCanをフル活用できるパターンは
+
+`load_and_authorize_resource`等をフル活用するというのはCanCanCanと密結合になり、規約による実装スタイルがさらに強固になると思います。これが悪いとは思いませんが、以下が達成されているアプリケーション（コントローラー）でしか実現可能性はないように思いました。厳しい、、、
+
+- 狭義のRESTfulが徹底されている（URL設計だけじゃなく中身のCRUDまで１コントローラーは１モデルのみに作用するようにできている）
+- 各モデルの権限の方向性に統一感があること。たとえばA has many Bの関係ならAが見れるならBも見れる権限ロジックでないとシンプルに書きにくそう
+- インスタンス変数の命名規則がコントローラーと常に一致している
+- 権限不足による異常系のテストが網羅されている
