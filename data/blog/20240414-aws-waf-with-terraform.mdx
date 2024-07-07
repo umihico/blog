@@ -206,6 +206,7 @@ resource "aws_wafv2_web_acl" "staging" {
       priority = rule.value.priority
       override_action {
         count {} # この記述でカウントモードになる
+        # none {} # こちらにするとブロックする
       }
       statement {
         managed_rule_group_statement {
@@ -226,7 +227,8 @@ resource "aws_wafv2_web_acl" "staging" {
     priority = 2000
 
     action {
-      count {}
+      count {} # この記述でカウントモードになる
+      # none {} # こちらにするとブロックする
     }
 
     statement {
