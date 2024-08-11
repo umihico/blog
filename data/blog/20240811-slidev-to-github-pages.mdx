@@ -1,0 +1,56 @@
+---
+tags: ['Slidev']
+date: '2024-08-11'
+title: 'Github Pagesで公開するSlidevをサッと環境構築する手順メモ'
+summary: '始めてSlidevを触ってみたが、Github Pagesで公開するまでは簡単だったものの、一部メモしておいた方が良かったため手順を残すことにした。'
+images: ['/static/images/umihico/ogp/20240811-slidev-to-github-pages.png']
+---
+
+始めて[Slidev](https://sli.dev)を触ってみたが、Github Pagesで公開するまでは簡単だったものの、一部メモしておいた方が良かったため手順を残すことにした。
+
+今度[JAWS PANKRATION 2024](https://jawspankration2024.jaws-ug.jp/ja/)で発表させていただくが、[Ginza.rb 第82回](https://ginzarb.connpass.com/event/323157/)でsli.devで作られた資料を見て、これは便利だと感じ、実際に触ってみた。
+
+簡単な手順で、中身はデモのプレゼンだがGithub Pagesで公開することができた。→ https://umihico.github.io/jawspankration2024/
+
+## 前提条件
+
+- レポジトリ名を`https://github.com/umihico/jawspankration2024`とするため、適宜読み替えること。
+
+## 手順
+
+1. レポジトリ`jawspankration2024`を作成する。後でforce-pushするため、作成時にプッシュコマンドを例示してくれるよう、README無しの空が良い。
+1. レポジトリを**クローンせず**、親ディレクトリで`npm init slidev@latest`を実行する。
+1. プロジェクト名を`jawspankration2024`、パッケージマネージャーを`npm`に設定する。
+1. プロジェクト名で生成されたディレクトリに入って、生成物をコミットする。（コマンド後述）
+1. [公式ドキュメント](https://sli.dev/guide/hosting#github-pages)を参考に`deploy.yml`をコピーして`.github/workflows/deploy.yml`を作成する。
+1. Githubのレポジトリ設定からPagesでGithub Actionsを選択する。(原文: In your repository, go to Settings > Pages. Under Build and deployment, select GitHub Actions.)
+1. Push（コマンド後述）してCIが通ったことを確認したら、Github Pagesで公開されていることを確認する。
+
+## コマンド
+
+```bash 
+# 親ディレクトリで実行して生成されたディレクトリに入る
+npm init slidev@latest
+cd jawspankration2024
+
+# 生成物をコミットする
+git init
+git add -A
+git commit -m "cmd: npm init slidev@latest" -m "project name -> jawspankration2024 / package manager > npm"
+
+# deploy.ymlを追加した後
+git add -A
+git commit -m "cmd: add deploy.yml" -m "copy from https://sli.dev/guide/hosting#github-pages"
+
+# Githubのレポジトリ設定からPagesでGithub Actionsを選択した後にプッシュする。レポジトリ生成時の例示コマンドを使う。
+git branch -M main
+git remote add origin git@github.com:umihico/jawspankration2024.git
+git push -u origin main
+```
+
+### メモしたかったところ
+
+- パッケージマネージャーはnpmにしないとdeploy.ymlが動かない
+- レポジトリの中で`npm init slidev@latest`を実行すると、ディレクトリ`jawspankration2024`の中に`jawspankration2024`が入れ子で作成されてしまう
+
+以上。簡単。
