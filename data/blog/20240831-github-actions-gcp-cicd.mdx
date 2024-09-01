@@ -1,0 +1,128 @@
+---
+tags: ['GCP', 'Github Actions', 'Terraform']
+date: '2024-08-31'
+title: 'GCPのTerraformをGithub ActionsでCI/CDやってみたメモ'
+summary: 'GCPのTerraformをGithub ActionsでCI/CDやってみたメモです。'
+
+---
+
+GCPのTerraformをGithub ActionsでCI/CDやってみたメモです。
+
+## さっそく実装部のコード
+
+```hcl
+terraform {
+  backend "s3" {
+    # 省略
+  }
+  required_providers {
+    google = {
+      source = "hashicorp/google"
+    }
+  }
+}
+
+locals {
+  gcp_project_id = "gcp_project_id"
+  cloud_run_roles = [
+    "roles/hoge.admin",
+  ]
+}
+
+# https://blog.g-gen.co.jp/entry/using-terraform-via-github-actions
+resource "google_project_service" "enable_api" {
+  for_each = toset([                       # Workload Identity 連携用
+    "iam.googleapis.com",                  # IAM
+    "cloudresourcemanager.googleapis.com", # Resource Manager
+    "iamcredentials.googleapis.com",       # Service Account Credentials
+    "sts.googleapis.com"                   # Security Token Service API
+  ])
+  project                    = local.gcp_project_id
+  service                    = each.value
+  disable_dependent_services = true
+}
+
+# https://zenn.dev/nnabeyang/articles/05ce98c4955123
+resource "google_project_service" "default" {
+  project = local.gcp_project_id
+  service = "iamcredentials.googleapis.com"
+}
+
+resource "google_service_account" "github_actions" {
+  project      = local.gcp_project_id
+  account_id   = "gh-actions-sa"
+  display_name = "A service account for GitHub Actions"
+  description  = "link to Workload Identity Pool used by github actions"
+}
+
+resource "google_iam_workload_identity_pool" "github" {
+  provider                  = google-beta
+  project                   = local.gcp_project_id
+  workload_identity_pool_id = "gh-actions-workload-id-pool"
+  display_name              = "gh-actions-workload-id-pool"
+  description               = "Workload Identity Pool for GitHub Actions"
+}
+
+resource "google_iam_workload_identity_pool_provider" "github" {
+  provider                           = google-beta
+  project                            = local.gcp_project_id
+  workload_identity_pool_id          = google_iam_workload_identity_pool.github.workload_identity_pool_id
+  workload_identity_pool_provider_id = "gh-actions-work-id-pool-provider"
+  display_name                       = "github actions provider"
+  description                        = "GitHub Actions Wordload Identity Pool Provider"
+
+  attribute_mapping = {
+    "google.subject"       = "assertion.sub"
+    "attribute.repository" = "assertion.repository"
+    "attribute.owner"      = "assertion.repository_owner"
+    "attribute.refs"       = "assertion.ref"
+  }
+
+  oidc {
+    issuer_uri = "https://token.actions.githubusercontent.com"
+  }
+}
+
+resource "google_service_account_iam_member" "github-account-iam" {
+  service_account_id = google_service_account.github_actions.name
+  role               = "roles/iam.workloadIdentityUser"
+  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github.name}/attribute.repository/github_org_name/github_repo_name"
+}
+
+resource "google_project_iam_member" "service_account" {
+  count   = length(local.cloud_run_roles)
+  project = local.gcp_project_id
+  role    = element(local.cloud_run_roles, count.index)
+  member  = "serviceAccount:${google_service_account.github_actions.email}"
+}
+
+output "service_account_github_actions_email" {
+  description = "github account for github actions"
+  value       = google_service_account.github_actions.email
+}
+
+output "google_iam_workload_identity_pool_provider_github_name" {
+  description = "Workload Identity Pood Provider ID"
+  value       = google_iam_workload_identity_pool_provider.github.name
+}
+```
+
+## Github Actionsの設定
+
+```yaml
+jobs:
+  terraform:
+    env:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: "google-github-actions/auth@v2"
+        with:
+          workload_identity_provider: "projects/numbers2024/locations/global/workloadIdentityPools/gh-actions-workload-id-pool/providers/gh-actions-work-id-pool-provider"
+          service_account: "gh-actions-sa@gcp_project_id.iam.gserviceaccount.com"
+      - name: "Set up Cloud SDK" # これが無いとgoogle-github-actions/auth後に`gcloud auth list`してもNo credentialed accounts.になった
+        uses: "google-github-actions/setup-gcloud@v2"
+      - name: Terraform apply
+        run: |
+          terraform -chdir=hogedir init -migrate-state
+          terraform -chdir=hogedir apply -auto-approve
+```
