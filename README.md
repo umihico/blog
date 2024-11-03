@@ -1,3 +1,6 @@
+> [!TIP]
+> .umihico/README.md に個人版の README を記述しています。
+
 ![tailwind-nextjs-banner](/public/static/images/twitter-card.png)
 
 # Tailwind Nextjs Starter Blog
